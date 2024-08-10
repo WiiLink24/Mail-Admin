@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap"
+        rel="stylesheet" />
+    <link href="/assets/output.css" rel="stylesheet" />
+    <link rel="apple-touch-icon" sizes="180x180" href="https://www.wiilink24.com/img/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="https://www.wiilink24.com/img/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="https://www.wiilink24.com/img/favicon-16x16.png" />
+    <link rel="manifest" href="https://www.wiilink24.com/img/site.webmanifest" />
+    <link rel="mask-icon" href="https://www.wiilink24.com/img/safari-pinned-tab.svg" color="#5bbad5" />
+    <link rel="shortcut icon" href="https://www.wiilink24.com/img/favicon.ico" />
+    <meta name="msapplication-TileColor" content="#ffffff" />
+    <meta name="msapplication-config" content="https://www.wiilink24.com/img/browserconfig.xml" />
+    <meta name="theme-color" content="#ffffff" />
+    <script src="https://kit.fontawesome.com/b0ac94d361.js" crossorigin="anonymous"></script>
+</head>
+<body class="dark:text-white dark:bg-slate-800">
+    {{template "header.tmpl" .}}
+    <main class="container items-center">
+        <form method="POST" enctype="multipart/form-data" action="/send_message">
+            <div>
+                <label for="recipient_type">Recipient</label>
+                <div class="flex items-center gap-4">
+                    <div class="flex gap-2">
+                        <label for="single">Single user</label>
+                        <input type="radio" name="recipient_type" id="single" value="single" checked>
+                    </div>
+                    <div class="flex gap-2">
+                        <label for="single">Multiple users</label>
+                        <input type="radio" name="recipient_type" id="multiple" value="multiple">
+                    </div>
+                    <div class="flex gap-2">
+                        <label for="all">All users</label>
+                        <input type="radio" name="recipient_type" id="all" value="all">
+                    </div>
+                </div>
+            </div>
+            <div>
+                <h2>Recipient</h2>
+                <div>
+                    <label for="recipient">Recipient</label>
+                    <input type="text" name="recipient" id="recipient">
+                </div>
+            </div>
+            <div>
+                <h2>Subject</h2>
+                <div>
+                    <label for="subject">Subject</label>
+                    <input type="text" name="subject" id="subject">
+                </div>
+            <div>
+                <textarea name="message_content" id="" cols="30" rows="10"></textarea>
+            </div>
+            <input type="submit" value="Send">
+        </form>
+    </main>
+</body>
+
+<script>
+    
+</script>
+</html>
