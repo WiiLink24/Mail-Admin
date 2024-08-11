@@ -5,18 +5,19 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/WiiLink24/AccountManager/middleware"
+	"github/WiiLink24/Mail-Webpanel/middleware"
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/oauth2"
+	"github.com/bwmarrin/snowflake"
 )
 
 var (
 	ctx         = context.Background()
-	pool        *pgxpool.Pool
 	wiiMailPool *pgxpool.Pool
 	authConfig  *AppAuthConfig
+	flakeNode   *snowflake.Node
 )
 
 func checkError(err error) {
@@ -49,8 +50,10 @@ func main() {
 	wiiMailPool, err = pgxpool.New(ctx, dbString)
 	checkError(err)
 
-	defer pool.Close()
 	defer wiiMailPool.Close()
+
+	flakeNode, err = snowflake.NewNode(1)
+	checkError(err)
 
 	r := gin.Default()
 

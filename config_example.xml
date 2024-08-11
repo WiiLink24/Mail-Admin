@@ -6,15 +6,8 @@
     <username>username</username>
     <password>password</password>
 
-    <wiiMailUsername>username</wiiMailUsername>
-    <wiiMailPassword>password</wiiMailPassword>
-
-    <!-- Database information-->
-    <databaseAddress>127.0.0.1</databaseAddress>
-    <databaseName>wiilink_accounts</databaseName>
-
     <wiiMailDatabaseAddress>127.0.0.1</wiiMailDatabaseAddress>
-    <wiiMailDatabaseName>wiilink_accounts</wiiMailDatabaseName>
+    <wiiMailDatabaseName>mail</wiiMailDatabaseName>
 
     <!-- OIDC credentials/data -->
     <oidc>

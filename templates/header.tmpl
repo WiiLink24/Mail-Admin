@@ -1,10 +1,11 @@
 {{define "header.tmpl"}}
-<header class="container items-center p-4">
+<header class="container items-center p-4 flex justify-between">
+    <img src="https://www.wiilink24.com/img/IS-logo.png" class="!h-[60px] dark:invert" />
     <nav>
         <ul class="inline-flex gap-3">
-            <li><a href="/send">Send message</a></li>
-            <li><a href="/clear">Clear inbounds/outbounds</a></li>
-            <li><a href="/misc">Misc</a></li>
+            <li class="px-3 py-1.5 bg-gray-200/20 hover:bg-gray-200/40 transition-all rounded-lg"><a class="inline-flex items-center gap-2" href="/send"><i class="fa-solid fa-envelope"></i>Send message</a></li>
+            <li class="px-3 py-1.5 bg-gray-200/20 hover:bg-gray-200/40 transition-all rounded-lg"><a class="inline-flex items-center gap-2" href="/clear"><i class="fa-solid fa-trash"></i>Clear inbounds/outbounds</a></li>
+            <li class="px-3 py-1.5 bg-gray-200/20 hover:bg-gray-200/40 transition-all rounded-lg"><a class="inline-flex items-center gap-2" href="/misc"><i class="fa-solid fa-gear"></i>Misc</a></li>
         </ul>
     </nav>
 </header>
