@@ -19,6 +19,7 @@ func SendMessage(c *gin.Context) {
 	subject := c.PostForm("subject")
 	message := c.PostForm("message_content")
 	recipient := c.PostForm("recipient")
+	attachment := c.PostForm("attachment")
 
 	formatted_recipient := strings.ReplaceAll(recipient, "-", "")
 
@@ -32,9 +33,30 @@ func SendMessage(c *gin.Context) {
 		fmt.Println(err)
 	}
 
-	data := nwc24.NewMessage(sender_address, recipient_address	)
+	//convert attachment to []byte
+	attachment_data := []byte(attachment)
+
+	//initialize the message
+	data := nwc24.NewMessage(sender_address, recipient_address)
 	data.SetSubject(subject)
-	data.SetText(message, "utf-16be")
+	data.SetContentType(nwc24.MultipartMixed)
+	data.SetBoundary(generateBoundary())
+	data.SetTag("X-Wii-MB-NoReply", "1")
+	data.SetTag("X-Wii-AppId", "2-48414541-0001")
+	data.SetTag("X-Wii-Cmd", "00044001")
+
+	//create the multipart
+	multipart := nwc24.NewMultipart()
+
+	//now we append the data
+	multipart.SetText(message, nwc24.UTF16BE)
+	multipart.SetContentType(nwc24.PlainText)
+
+	img_multipart := nwc24.NewMultipart()
+	img_multipart.AddFile("attachment", attachment_data, nwc24.Jpeg)
+
+	//add the multipart to the message
+	data.AddMultipart(multipart, img_multipart)
 	
 	content, err := data.ToString()
 	if err != nil {
