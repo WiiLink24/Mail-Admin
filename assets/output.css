@@ -700,6 +700,10 @@ h2 {
   z-index: 10;
 }
 
+.z-20 {
+  z-index: 20;
+}
+
 .col-span-3 {
   grid-column: span 3 / span 3;
 }
