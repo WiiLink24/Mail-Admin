@@ -668,6 +668,10 @@ h2 {
   top: 1.75rem;
 }
 
+.z-10 {
+  z-index: 10;
+}
+
 .col-span-3 {
   grid-column: span 3 / span 3;
 }
