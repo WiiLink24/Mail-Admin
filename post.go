@@ -69,10 +69,22 @@ func SendMessage(c *gin.Context) {
 		fmt.Println(content)
 	}
 
-	// Fetch the message from the form
-	uploadToGenerator(c, "letter", "letter.png")
-	uploadToGenerator(c, "thumbnail", "thumbnail.png")
-	generateLetterhead()
+	// Fetch the message from the form only if letter and thumbnail are uploaded
+	letterFile, _, _ := c.Request.FormFile("letter")
+	thumbnailFile, _, _ := c.Request.FormFile("thumbnail")
+
+	if letterFile != nil || thumbnailFile != nil {
+		uploadToGenerator(c, "letter", "letter.png")
+		uploadToGenerator(c, "thumbnail", "thumbnail.png")
+
+		audioFile, _, _ := c.Request.FormFile("audio")
+		if audioFile != nil {
+			uploadToGenerator(c, "audio", "sound.wav")
+		}
+		generateLetterhead()
+	} else {
+		fmt.Println("No letter or thumbnail uploaded, skipping...")
+	}
 
 	_, err = wiiMailPool.Exec(ctx, InsertMail, flakeNode.Generate(), content, "9999999900000000", formatted_recipient)
 	if err != nil {
@@ -122,28 +134,28 @@ func uploadToGenerator(c *gin.Context, source string, destination string) {
 }
 
 func generateLetterhead() (string, error) {
-    var out bytes.Buffer
-    var stderr bytes.Buffer
+	var out bytes.Buffer
+	var stderr bytes.Buffer
 
-    // Run generate.sh
-    cmd := exec.Command("sh", "generator/generate.sh")
-    cmd.Stdout = &out
-    cmd.Stderr = &stderr
+	// Run generate.sh
+	cmd := exec.Command("sh", "generator/generate.sh")
+	cmd.Stdout = &out
+	cmd.Stderr = &stderr
 
-    log.Printf("Running command and waiting for it to finish...")
-    err := cmd.Run()
-    if err != nil {
-        return "", fmt.Errorf("failed to run generate.sh: %v: %s", err, stderr.String())
-    }
+	log.Printf("Running command and waiting for it to finish...")
+	err := cmd.Run()
+	if err != nil {
+		return "", fmt.Errorf("failed to run generate.sh: %v: %s", err, stderr.String())
+	}
 
-    // Read the data from generator/output/letterhead.txt
-    letterheadData, err := ioutil.ReadFile("generator/output/letterhead.txt")
-    if err != nil {
-        return "", fmt.Errorf("failed to read file: %v", err)
-    }
+	// Read the data from generator/output/letterhead.txt
+	letterheadData, err := ioutil.ReadFile("generator/output/letterhead.txt")
+	if err != nil {
+		return "", fmt.Errorf("failed to read file: %v", err)
+	}
 
-    // Convert the data to a string and store it in a variable
-    letterheadContent := string(letterheadData)
-    log.Printf("Letterhead content: %v", letterheadContent)
-    return letterheadContent, nil
+	// Convert the data to a string and store it in a variable
+	letterheadContent := string(letterheadData)
+	log.Printf("Letterhead content: %v", letterheadContent)
+	return letterheadContent, nil
 }

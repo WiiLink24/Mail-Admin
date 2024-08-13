@@ -12,14 +12,12 @@ echo "${BOLD}       Wii Message Board Letterhead Generator${RESET}"
 echo "${CYAN}          by Alex, based on larsenv's work"
 echo "${CYAN}========================================================${RESET}"
 
-if [ ! -f "generator/input/letter.png" ]
-then
+if [ ! -f "generator/input/letter.png" ]; then
     echo "${RED}${BOLD}Error:${RESET}${BOLD}Please make a letterhead that is 512x376 and save it in this directory as letter.png.${RESET}"
     exit
 fi
 
-if [ -d "generator/letterhead.d" ]
-then
+if [ -d "generator/letterhead.d" ]; then
     rm -rf generator/letterhead.d
 fi
 
@@ -53,12 +51,11 @@ generator/tools/wszst create generator/letterhead.d/letter.d/
 mv generator/letterhead.d/letter.u8 generator/letterhead.d/letter_LZ.bin
 
 # Compress the letter_LZ.bin in LZSS
-generator/tools/lzss -evn generator/letterhead.d/letter_LZ.bin generator/letterhead.d/letter_LZ.bin 
+generator/tools/lzss -evn generator/letterhead.d/letter_LZ.bin generator/letterhead.d/letter_LZ.bin
 
 echo "\n${YELLOW}Encoding thumbnail...${RESET}\n"
 
-if [ ! -f "generator/input/thumbnail.png" ]
-then
+if [ ! -f "generator/input/thumbnail.png" ]; then
     echo "${RED}${BOLD}Error:${RESET}${BOLD}Please make a thumbnail that is 144x96 and save it in the 'input' folder as 'thumbnail.png'.${RESET}"
     exit
 fi
@@ -90,11 +87,10 @@ mv generator/letterhead.u8 generator/letterhead.arc
 # Remove the generator/letterhead.d directory, we no longer need it as we have the .arc file
 rm -rf generator/letterhead.d
 
-if [ ! -f "generator/letterhead.arc" ]
-then
+if [ ! -f "generator/letterhead.arc" ]; then
     echo "${RED}${BOLD}Error:${RESET}${BOLD}The letterhead.arc file was not created check if you have permission to write to this directory.${RESET}"
     exit
-    fi
+fi
 
 rm -rf generator/output/*
 
@@ -103,24 +99,14 @@ echo "\n${YELLOW}Converting letterhead.arc to base64...${RESET}\n"
 base64 -b 76 -i generator/letterhead.arc -o generator/output/letterhead.txt
 
 if [ -f "generator/input/sound.wav" ]; then
-    echo "\n${CYAN}${BOLD}sound.vaw file found!\n${RESET}${CYAN}Do you want to add a sound to the letterhead?${RESET} (y/n)"
-    read sound
-    if [ "$sound" = "y" ]; then
-        echo "\n${CYAN}Do you want to loop the sound?${RESET} (y/n)"
-        read loop
-        echo "\n${YELLOW}Encoding sound...${RESET}\n"
-        if [ "$loop" = "y" ]; then
-            ./tools/sharpii BNS -to generator/input/sound.wav sound.bns -m -l
-        else
-            ./tools/sharpii BNS -to generator/input/sound.wav sound.bns -m
-        fi
-        wszst x generator/letterhead.arc
-        mv generator/sound.bns generator/letterhead.d/sound.bns
-        ./tools/wszst create generator/letterhead.d
-        mv generator/letterhead.u8 generator/letterhead.arc
-        base64 -b 76 -i generator/letterhead.arc -o generator/output/letterhead.txt
-        rm -rf generator/letterhead.d
-    fi
+    echo "\n${YELLOW}Encoding sound...${RESET}\n"
+    generator/tools/sharpii BNS -to generator/input/sound.wav generator/sound.bns -m
+    generator/tools/wszst x generator/letterhead.arc
+    mv generator/sound.bns generator/letterhead.d/sound.bns
+    generator/tools/wszst create generator/letterhead.d
+    mv generator/letterhead.u8 generator/letterhead.arc
+    base64 -b 76 -i generator/letterhead.arc -o generator/output/letterhead.txt
+    rm -rf generator/letterhead.d
 fi
 
 echo "\n${GREEN}${BOLD}The letterhead has been successfully created!${RESET}\n"

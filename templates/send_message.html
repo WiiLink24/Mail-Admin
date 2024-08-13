@@ -1,47 +1,104 @@
 {{template "base.tmpl"}}
-        <form method="POST" enctype="multipart/form-data" action="/send_message">
-            <div>
-                <label for="recipient_type">Recipient</label>
-                <div class="flex items-center gap-4">
-                    <div class="flex gap-2">
-                        <label for="single">Single user</label>
-                        <input type="radio" name="recipient_type" id="single" value="single" checked>
-                    </div>
-                    <div class="flex gap-2">
-                        <label for="single">Multiple users</label>
-                        <input type="radio" name="recipient_type" id="multiple" value="multiple">
-                    </div>
-                    <div class="flex gap-2">
-                        <label for="all">All users</label>
-                        <input type="radio" name="recipient_type" id="all" value="all">
-                    </div>
-                </div>
+<form method="POST" enctype="multipart/form-data" action="/send_message">
+    <div>
+        <label for="recipient_type">Recipient</label>
+        <div class="flex items-center gap-4">
+            <div class="flex gap-2">
+                <label for="single">Single user</label>
+                <input type="radio" name="recipient_type" id="single" value="single" checked>
             </div>
-            <div>
-                <h2>Recipient</h2>
-                <div>
-                    <label for="recipient">Recipient</label>
-                    <input type="text" name="recipient" id="recipient">
-                </div>
+            <div class="flex gap-2">
+                <label for="single">Multiple users</label>
+                <input type="radio" name="recipient_type" id="multiple" value="multiple">
             </div>
-            <div>
-                <h2>Subject</h2>
-                <div>
-                    <label for="subject">Subject</label>
-                    <input type="text" name="subject" id="subject">
-                </div>
-            <div>
-                <textarea name="message_content" id="" cols="30" rows="10"></textarea>
+            <div class="flex gap-2">
+                <label for="all">All users</label>
+                <input type="radio" name="recipient_type" id="all" value="all">
             </div>
-            <div>
-                <label for="attachment">Attachment</label>
-                <input type="file" name="attachment" id="attachment" accept="image/jpeg">
-            </div>
-            <label for="letter">Choose a file for letter:</label>
-            <input type="file" id="letter" name="letter" required>
-            <label for="thumbnail">Choose a file for thumbnail:</label>
-            <input type="file" id="thumbnail" name="thumbnail" required>
-            <br><br>
-            <input type="submit" value="Send">
-        </form>
+        </div>
+    </div>
+    <div>
+        <h2>Recipient</h2>
+        <div>
+            <label for="recipient">Recipient</label>
+            <input type="text" name="recipient" id="recipient">
+        </div>
+    </div>
+    <div>
+        <h2>Subject</h2>
+        <div>
+            <label for="subject">Subject</label>
+            <input type="text" name="subject" id="subject">
+        </div>
+        <div>
+            <textarea name="message_content" id="" cols="30" rows="10"></textarea>
+        </div>
+        <div>
+            <label for="attachment">Attachment</label>
+            <input type="file" name="attachment" id="attachment" accept="image/jpeg">
+        </div>
+        <label for="letter">Choose a file for letter:</label>
+        <input type="file" id="letter" name="letter">
+        <br><br>
+        <label for="thumbnail">Choose a file for thumbnail:</label>
+        <input type="file" id="thumbnail" name="thumbnail">
+        <br><br>
+        <label for="audio">Choose a file for audio:</label>
+        <input type="file" id="audio" name="audio">
+        <input type="hidden" id="audioInput" name="audioInput">
+        <br><br>
+        <input type="submit" value="Send">
+</form>
+
+<h1>Record Audio</h1>
+<div id="startRecordBtn">Start Recording</div>
+<div id="stopRecordBtn" disabled>Stop Recording</div>
+<br><br>
+<audio id="audioPlayback" controls></audio>
+
+<script>
+    let mediaRecorder;
+    let audioChunks = [];
+    const startRecordBtn = document.getElementById('startRecordBtn');
+    const stopRecordBtn = document.getElementById('stopRecordBtn');
+    const audioPlayback = document.getElementById('audioPlayback');
+
+    startRecordBtn.addEventListener('click', async () => {
+        // Request user permission to access audio input
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+
+        // When data is available, push it to audioChunks
+        mediaRecorder.ondataavailable = event => {
+            audioChunks.push(event.data);
+        };
+
+        // When recording stops, create a blob from the audio data and set it as the source for the audio element
+        mediaRecorder.onstop = () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+            const audioUrl = URL.createObjectURL(audioBlob);
+
+            // Set the src attribute of the audio element
+            const audioElement = document.getElementById('audioPlayback');
+            audioElement.src = audioUrl;
+
+            // Set the value of the hidden input field with the audio Blob URL
+            const audioInput = document.getElementById('audioInput');
+            audioInput.value = audioUrl;
+
+            audioChunks = []; // Reset the audio chunks array for future recordings
+        };
+
+        mediaRecorder.start();
+        startRecordBtn.disabled = true;
+        stopRecordBtn.disabled = false;
+    });
+
+    stopRecordBtn.addEventListener('click', () => {
+        mediaRecorder.stop();
+        startRecordBtn.disabled = false;
+        stopRecordBtn.disabled = true;
+    });
+</script>
+
 {{template "footer.tmpl"}}
