@@ -23,12 +23,12 @@
 
 
 <div class="flex flex-row items-start gap-10">
-    <div class="top-7 w-2/3 h-[calc(100vh-150px)] p-5 shadow-lg shadow-white/10 rounded-xl flex flex-col gap-5 animate-bg relative"
+    <div class="hidden sm:flex top-7 w-2/3 h-[705px] p-5 shadow-lg shadow-white/10 rounded-xl flex-col gap-5 animate-bg relative"
         style="background-image: url('assets/img/bg.png'); background-size: 8px 8px; background-repeat: repeat;">
         <img src="" id="letterPreview" alt="Letter Preview" class="w-full h-auto" style="display: none;">
         <img src="" id="thumbnailPreview" alt="Thumbnail Preview" class="w-32 h-auto" style="display: none;">
     </div>
-    <div>
+    <div class="pl-5 pr-5 sm:pl-0 sm:pl-0">
         <form method="POST" enctype="multipart/form-data" action="/send_message">
             <div class="mb-4">
                 <h2>Send to:</h2>
