@@ -81,7 +81,8 @@ func SendMessage(c *gin.Context) {
 		if audioFile != nil {
 			uploadToGenerator(c, "audio", "sound.wav")
 		}
-		generateLetterhead()
+		letterheadContent, _ := generateLetterhead()
+		log.Printf("Letterhead content: %s", letterheadContent)
 	} else {
 		fmt.Println("No letter or thumbnail uploaded, skipping...")
 	}
@@ -156,6 +157,5 @@ func generateLetterhead() (string, error) {
 
 	// Convert the data to a string and store it in a variable
 	letterheadContent := string(letterheadData)
-	log.Printf("Letterhead content: %v", letterheadContent)
 	return letterheadContent, nil
 }
