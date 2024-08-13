@@ -1,5 +1,7 @@
 github.com/WiiLink24/nwc24 v0.0.0-20240811204455-5f840dc80b33 h1:U1TajNS/mj8AZk60DMDfV9oTuJZa4HyvRT1A/GM0NpY=
 github.com/WiiLink24/nwc24 v0.0.0-20240811204455-5f840dc80b33/go.mod h1:FxcUTrS85gzEPurqt0K7Ihiy0WMIySFcxbE7mdCWk+0=
+github.com/WiiLink24/nwc24 v0.0.0-20240811205802-3b26ef47ac74 h1:XPX3jHVffjSbVirtZhwNbzPYCdaI0MarGRKhlmgK3Xw=
+github.com/WiiLink24/nwc24 v0.0.0-20240811205802-3b26ef47ac74/go.mod h1:FxcUTrS85gzEPurqt0K7Ihiy0WMIySFcxbE7mdCWk+0=
 github.com/bwmarrin/snowflake v0.3.0 h1:xm67bEhkKh6ij1790JB83OujPR5CzNe8QuQqAgISZN0=
 github.com/bwmarrin/snowflake v0.3.0/go.mod h1:NdZxfVWX+oR6y2K0o6qAYv6gIOP9rjG0/E9WsDpxqwE=
 github.com/bytedance/sonic v1.12.1 h1:jWl5Qz1fy7X1ioY74WqO0KjAMtAGQs4sYnjiEBiyX24=
