@@ -656,28 +656,12 @@ h2 {
   position: relative;
 }
 
-.sticky {
-  position: sticky;
-}
-
 .left-1\/2 {
   left: 50%;
 }
 
 .top-1\/2 {
   top: 50%;
-}
-
-.top-10 {
-  top: 2.5rem;
-}
-
-.top-9 {
-  top: 2.25rem;
-}
-
-.top-8 {
-  top: 2rem;
 }
 
 .top-7 {
@@ -748,44 +732,16 @@ h2 {
   height: 60px !important;
 }
 
+.h-\[calc\(100vh-150px\)\] {
+  height: calc(100vh - 150px);
+}
+
 .h-auto {
   height: auto;
 }
 
 .h-full {
   height: 100%;
-}
-
-.h-screen {
-  height: 100vh;
-}
-
-.h-\[100vh\] {
-  height: 100vh;
-}
-
-.h-\[ca\.c\(100vh-\)\] {
-  height: ca.c(100vh-);
-}
-
-.h-\[ca\.c\(100vh-200px\)\] {
-  height: ca.c(100vh-200px);
-}
-
-.h-\[calc\(100vh-200px\)\] {
-  height: calc(100vh - 200px);
-}
-
-.h-\[calc\(100vh-100px\)\] {
-  height: calc(100vh - 100px);
-}
-
-.h-\[calc\(100vh-150px\)\] {
-  height: calc(100vh - 150px);
-}
-
-.min-h-\[600px\] {
-  min-height: 600px;
 }
 
 .w-1\/2 {
@@ -885,6 +841,10 @@ h2 {
   gap: 0.25rem;
 }
 
+.gap-10 {
+  gap: 2.5rem;
+}
+
 .gap-2 {
   gap: 0.5rem;
 }
@@ -899,10 +859,6 @@ h2 {
 
 .gap-\[3px\] {
   gap: 3px;
-}
-
-.gap-10 {
-  gap: 2.5rem;
 }
 
 .rounded-full {
@@ -1039,8 +995,8 @@ h2 {
   background-color: rgb(37 99 235 / var(--tw-bg-opacity));
 }
 
-.bg-gray-200\/20 {
-  background-color: rgb(229 231 235 / 0.2);
+.bg-gray-200\/0 {
+  background-color: rgb(229 231 235 / 0);
 }
 
 .bg-gray-300 {
@@ -1071,10 +1027,6 @@ h2 {
 .bg-white {
   --tw-bg-opacity: 1;
   background-color: rgb(255 255 255 / var(--tw-bg-opacity));
-}
-
-.bg-gray-200\/0 {
-  background-color: rgb(229 231 235 / 0);
 }
 
 .p-1 {
@@ -1255,8 +1207,8 @@ h2 {
   background-color: rgb(229 231 235 / var(--tw-bg-opacity));
 }
 
-.hover\:bg-gray-200\/40:hover {
-  background-color: rgb(229 231 235 / 0.4);
+.hover\:bg-gray-200\/10:hover {
+  background-color: rgb(229 231 235 / 0.1);
 }
 
 .hover\:bg-gray-400:hover {
@@ -1267,14 +1219,6 @@ h2 {
 .hover\:bg-slate-600:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(71 85 105 / var(--tw-bg-opacity));
-}
-
-.hover\:bg-gray-200\/10:hover {
-  background-color: rgb(229 231 235 / 0.1);
-}
-
-.hover\:bg-gray-200\/20:hover {
-  background-color: rgb(229 231 235 / 0.2);
 }
 
 .hover\:text-red-500:hover {
