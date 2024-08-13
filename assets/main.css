@@ -6,6 +6,29 @@
     input[type="text"], textarea {
         @apply dark:text-black;
     }
+
+    h2 {
+        @apply mb-1 opacity-30;
+    }
+    
+    .hidden-radio {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      
+      .radio-label {
+        display: inline-block;
+        padding: 10px 20px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+      
+      .hidden-radio:checked + .radio-label {
+        @apply bg-gray-400 dark:bg-slate-600;
+        transition: background-color 0.3s;
+      }
 }
 
 @layer utilities {

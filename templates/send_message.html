@@ -1,62 +1,188 @@
 {{template "base.tmpl"}}
-<form method="POST" enctype="multipart/form-data" action="/send_message">
-    <div>
-        <label for="recipient_type">Recipient</label>
-        <div class="flex items-center gap-4">
-            <div class="flex gap-2">
-                <label for="single">Single user</label>
-                <input type="radio" name="recipient_type" id="single" value="single" checked>
-            </div>
-            <div class="flex gap-2">
-                <label for="single">Multiple users</label>
-                <input type="radio" name="recipient_type" id="multiple" value="multiple">
-            </div>
-            <div class="flex gap-2">
-                <label for="all">All users</label>
-                <input type="radio" name="recipient_type" id="all" value="all">
-            </div>
-        </div>
+<div id="recordModal"
+    class="w-[600px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-slate-700 border-2 border-slate-600 shadow-lg shadow-white/5 p-5 rounded-xl hidden fixed">
+    <div class="flex flex-row items-center justify-between">
+        <h1 class="text-xl font-bold"><i class="fa-solid fa-microphone"></i> Record Audio</h1>
+        <i class="fa-solid fa-close text-xl hover:scale-110 hover:text-red-500 transition-all"
+            onclick="toggle('recordModal')"></i>
     </div>
-    <div>
-        <h2>Recipient</h2>
-        <div>
-            <label for="recipient">Recipient</label>
-            <input type="text" name="recipient" id="recipient">
-        </div>
+    <hr class="mt-3 mb-3">
+    <div class="flex flex-row items-center gap-1">
+        <div id="startRecordBtn"
+            class="w-full p-3 bg-slate-500 hover:bg-slate-600 text-center rounded-l-lg rounded-r-sm transition-all"><i
+                class="fa-solid fa-play"></i></div>
+        <div id="stopRecordBtn"
+            class="w-full p-3 bg-slate-500 hover:bg-slate-600 opacity-30 cursor-not-allowed text-center rounded-l-sm rounded-r-lg transition-all"
+            disabled><i class="fa-solid fa-stop"></i></div>
     </div>
-    <div>
-        <h2>Subject</h2>
-        <div>
-            <label for="subject">Subject</label>
-            <input type="text" name="subject" id="subject">
-        </div>
-        <div>
-            <textarea name="message_content" id="" cols="30" rows="10"></textarea>
-        </div>
-        <div>
-            <label for="attachment">Attachment</label>
-            <input type="file" name="attachment" id="attachment" accept="image/jpeg">
-        </div>
-        <label for="letter">Choose a file for letter:</label>
-        <input type="file" id="letter" name="letter">
-        <br><br>
-        <label for="thumbnail">Choose a file for thumbnail:</label>
-        <input type="file" id="thumbnail" name="thumbnail">
-        <br><br>
-        <label for="audio">Choose a file for audio:</label>
-        <input type="file" id="audio" name="audio">
-        <input type="hidden" id="audioInput" name="audioInput">
-        <br><br>
-        <input type="submit" value="Send">
-</form>
+    <audio id="audioPlayback" class="w-full mt-3 rounded-lg" controls></audio>
+    <br>
+    <p class="opacity-60"><i class="fa-solid fa-circle-information"></i> Once recording stops, the recording will be downloaded to your device and will be able to add it using the "Add audio" button.</p>
+</div>
 
-<h1>Record Audio</h1>
-<div id="startRecordBtn">Start Recording</div>
-<div id="stopRecordBtn" disabled>Stop Recording</div>
-<br><br>
-<audio id="audioPlayback" controls></audio>
+
+<div class="flex flex-row items-start gap-5">
+    <div class="w-2/3 p-5 shadow-lg shadow-white/10 rounded-xl flex flex-col gap-5"
+        style="background-image: url('assets/img/bg.png'); background-size: 8px 8px; background-repeat: repeat;">
+        <img src="" id="letterPreview" alt="Letter Preview" class="w-full h-auto" style="display: none;">
+        <img src="" id="thumbnailPreview" alt="Thumbnail Preview" class="w-32 h-auto" style="display: none;">
+    </div>
+    <div>
+        <form method="POST" enctype="multipart/form-data" action="/send_message">
+            <div class="mb-4">
+                <h2>Send to:</h2>
+                <div class="flex flex-row items-center gap-[3px]">
+                    <input type="radio" id="single" name="recipient_type" value="single" class="hidden-radio" />
+                    <label for="single" title="Single user"
+                        class="radio-label w-1/3 rounded-l-xl rounded-r-md bg-gray-300 hover:bg-gray-400 dark:bg-slate-700 dark:hover:bg-slate-600">
+                        <i class="p-1 fa-solid fa-user w-full text-center dark:text-white"></i>
+                    </label>
+
+                    <input type="radio" id="multiple" name="recipient_type" value="multiple" class="hidden-radio" />
+                    <label for="multiple" title="Multiple user"
+                        class="radio-label w-1/3 rounded-md bg-gray-300 hover:bg-gray-400 dark:bg-slate-700 dark:hover:bg-slate-600">
+                        <i class="p-1 fa-solid fa-users w-full text-center dark:text-white"></i>
+                    </label>
+
+                    <input type="radio" id="all" name="recipient_type" value="all" class="hidden-radio" />
+                    <label for="all" title="Everybody"
+                        class="radio-label w-1/3 rounded-l-md rounded-r-xl bg-gray-300 hover:bg-gray-400 dark:bg-slate-700 dark:hover:bg-slate-600">
+                        <i class="p-1 fa-solid fa-globe-americas w-full text-center dark:text-white"></i>
+                    </label>
+                </div>
+            </div>
+            <div class="mb-4">
+                <h2>Recipient</h2>
+                <div>
+                    <input type="text" name="recipient" id="recipient" required placeholder="Eg: 9999-9999-9000-0000"
+                        class="w-full border rounded-lg p-2 text-black" oninput="formatRecipient(event)" />
+                </div>
+            </div>
+            <div class="mb-4">
+                <h2>Subject</h2>
+                <div>
+                    <input type="text" name="subject" id="subject" required
+                        placeholder="Eg: New contests added for CMOC"
+                        class="w-full border rounded-t-xl rounded-b-md p-2 text-black" oninput="updateSubject(event)" />
+                    <textarea name="message_content" id="" cols="30" rows="6"
+                        class="mt-1 w-full border rounded-t-md rounded-b-xl p-2 text-black"
+                        placeholder="Eg: There have been new contests posted for the Check Mii Out Channel! Go check them out and vote now!"></textarea>
+                </div>
+                <div class="input mt-4 col-start-4 col-span-3 p-2 border rounded-xl bg-slate-600 border-slate-500">
+                    <span class="mb-2 hover:cursor-help flex flex-row items-center justify-between gap-5"
+                        title="Image attached to the mail."><b>Customization</b> <span class="opacity-30">(jpeg &
+                            png)</span></span>
+                    <label
+                        class="bg-white cursor-pointer p-4 rounded-t-lg rounded-b-sm transition-all hover:bg-gray-200 text-black flex items-center justify-between gap-3"><i
+                            class="fa-solid fa-circle-plus"></i>Add image
+                        <input type="file" name="attachment" type="image/jpeg" class="hidden"
+                            onchange="previewImage(event, 'thumbnailPreview', 'thumbnailPreview2')"
+                            accept="image/jpeg" />
+                        <img id="thumbnailPreview2" class="w-8 scale-150 hidden rounded-sm shadow-md rotate-3" />
+                    </label>
+
+                    <div class="mt-1 flex flex-row gap-1">
+                        <label
+                            class="w-1/2 bg-white cursor-pointer p-4 rounded-l-lg rounded-r-sm rounded-tl-sm transition-all hover:bg-gray-200 text-black flex items-center justify-between gap-3"
+                            title="Add letter"><i class="fa-solid fa-envelope-open-text"></i>Add letter
+                            <input type="file" id="letter" name="letter" type="image/png" class="hidden"
+                                onchange="previewImage(event, 'thumbnailPreview', 'thumbnailPreview3')"
+                                accept="image/png" />
+                            <img id="thumbnailPreview3" class="w-5 scale-150 hidden rounded-sm shadow-md rotate-3" />
+                        </label>
+                        <label
+                            class="w-1/2 bg-white cursor-pointer p-4 rounded-l-sm rounded-r-lg rounded-tr-sm transition-all hover:bg-gray-200 text-black flex items-center justify-between gap-3"
+                            title="Add thumbnail"><i class="fa-solid fa-envelope"></i>Add thumbnail
+                            <input type="file" id="thumbnail" name="thumbnail" type="image/png" class="hidden"
+                                onchange="previewImage(event, 'thumbnailPreview', 'thumbnailPreview4')"
+                                accept="image/png" />
+                            <img id="thumbnailPreview4" class="w-5 scale-150 hidden rounded-sm shadow-md rotate-3" />
+                        </label>
+                    </div>
+                    <hr class="mt-3 mb-3 opacity-30">
+                    <label
+                        class="bg-white cursor-pointer p-4 rounded-lg transition-all hover:bg-gray-200 text-black flex items-center justify-between gap-3"><i
+                            id="audioIcon" class="fa-solid fa-microphone"></i>Add audio
+                        <input type="file" id="audio" name="audio" type="file" class="hidden" accepts="file/wav"
+                            onchange="hasAudio()" />
+                    </label>
+                    <p class="mt-2 opacity-60 text-right hover:underline" onclick="toggle('recordModal')">Record now</p>
+                </div>
+                <br><br>
+                <input type="submit" value="Send">
+        </form>
+    </div>
+</div>
 
 <script>
+    function toggle(id) {
+        const modal = document.getElementById(id);
+        modal.classList.toggle('hidden');
+    }
+
+    function formatRecipient(event) {
+        const input = event.target;
+        let value = input.value.replace(/\D/g, ''); // Remove all non-digit characters
+        value = value.substring(0, 16); // Limit to 16 digits
+        value = value.match(/.{1,4}/g)?.join('-') || value; // Add hyphen after every 4 digits
+        input.value = value;
+    }
+
+    function hasAudio() {
+        document.getElementById('audioIcon').style.color = 'green';
+    }
+
+    function previewImage(event, id, id2) {
+        const reader = new FileReader();
+        reader.onload = function () {
+            const output = document.getElementById(id);
+            const output2 = document.getElementById(id2);
+            output.src = reader.result;
+            output2.src = reader.result;
+            output.classList.remove("hidden");
+            output2.classList.remove("hidden");
+        };
+        reader.readAsDataURL(event.target.files[0]);
+    }
+
+    function updateContestName(event) {
+        document.getElementById("contestName").textContent = event.target.value;
+    }
+
+    // Get the letter file input and place it into the img
+    function initializePreviews() {
+        const letterInput = document.getElementById('letter');
+        const letterPreview = document.getElementById('letterPreview');
+        const thumbnailInput = document.getElementById('thumbnail');
+        const thumbnailPreview = document.getElementById('thumbnailPreview'); // Ensure this element is correctly referenced
+
+        letterInput.addEventListener('change', () => {
+            const file = letterInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = () => {
+                letterPreview.src = reader.result;
+                letterPreview.style.display = 'block';
+            };
+
+            reader.readAsDataURL(file);
+        });
+
+        thumbnailInput.addEventListener('change', () => {
+            const file = thumbnailInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = () => {
+                thumbnailPreview.src = reader.result;
+                thumbnailPreview.style.display = 'block';
+            };
+
+            reader.readAsDataURL(file);
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', initializePreviews);
+
     let mediaRecorder;
     let audioChunks = [];
     const startRecordBtn = document.getElementById('startRecordBtn');
@@ -65,6 +191,14 @@
 
     startRecordBtn.addEventListener('click', async () => {
         // Request user permission to access audio input
+        stopRecordBtn.disabled = false;
+        stopRecordBtn.classList.remove('opacity-30');
+        stopRecordBtn.classList.remove('cursor-not-allowed');
+        
+        startRecordBtn.disabled = true;
+        startRecordBtn.classList.add('opacity-30');
+        startRecordBtn.classList.add('cursor-not-allowed');
+
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         mediaRecorder = new MediaRecorder(stream);
 
@@ -75,18 +209,29 @@
 
         // When recording stops, create a blob from the audio data and set it as the source for the audio element
         mediaRecorder.onstop = () => {
-            const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-            const audioUrl = URL.createObjectURL(audioBlob);
+            try {
+                stopRecordBtn.disabled = true;
+                stopRecordBtn.classList.add('opacity-30');
+                stopRecordBtn.classList.add('cursor-not-allowed');
+                
+                startRecordBtn.disabled = false;
+                startRecordBtn.classList.remove('opacity-30');
+                startRecordBtn.classList.remove('cursor-not-allowed');
+                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                const audioUrl = URL.createObjectURL(audioBlob);
 
-            // Set the src attribute of the audio element
-            const audioElement = document.getElementById('audioPlayback');
-            audioElement.src = audioUrl;
+                const audioElement = document.getElementById('audioPlayback');
+                audioElement.src = audioUrl;
 
-            // Set the value of the hidden input field with the audio Blob URL
-            const audioInput = document.getElementById('audioInput');
-            audioInput.value = audioUrl;
+                const a = document.createElement('a');
+                a.href = audioUrl;
+                a.download = 'audio.wav';
+                a.click();
 
-            audioChunks = []; // Reset the audio chunks array for future recordings
+                audioChunks = [];
+            } catch (error) {
+                console.error('Error during mediaRecorder onstop:', error);
+            }
         };
 
         mediaRecorder.start();
@@ -100,5 +245,4 @@
         stopRecordBtn.disabled = true;
     });
 </script>
-
 {{template "footer.tmpl"}}
