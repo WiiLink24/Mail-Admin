@@ -1,0 +1,11 @@
+{{define "header.tmpl"}}
+<header class="container items-center p-4 flex justify-between">
+    <img src="https://www.wiilink24.com/img/IS-logo.png" class="!h-[60px] dark:invert" />
+    <nav>
+        <ul class="flex flex-row items-center justify-center gap-3">
+            <li><a class="inline-flex items-center gap-2" href="/send"><i class="fa-solid fa-envelope"></i>Send message</a></li> | 
+            <li class="px-6 py-1.5 bg-red-500 hover:bg-red-600 transition-all rounded-full"><a class="text-center" href="/clear" title="Clear inbounds/outbounds (helps fix mail in some scenarios)"><i class="fa-solid fa-trash"></i></a></li>
+        </ul>
+    </nav>
+</header>
+{{end}}
