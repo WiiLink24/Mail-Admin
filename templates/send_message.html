@@ -37,6 +37,11 @@
                 <label for="attachment">Attachment</label>
                 <input type="file" name="attachment" id="attachment" accept="image/jpeg">
             </div>
+            <label for="letter">Choose a file for letter:</label>
+            <input type="file" id="letter" name="letter" required>
+            <label for="thumbnail">Choose a file for thumbnail:</label>
+            <input type="file" id="thumbnail" name="thumbnail" required>
+            <br><br>
             <input type="submit" value="Send">
         </form>
 {{template "footer.tmpl"}}

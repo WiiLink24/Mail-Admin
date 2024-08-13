@@ -1,13 +1,17 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
-	"net/mail"
-	"strings"
-
 	"github.com/WiiLink24/nwc24"
 	"github.com/gin-gonic/gin"
-	
+	"io"
+	"io/ioutil"
+	"log"
+	"net/mail"
+	"os"
+	"os/exec"
+	"strings"
 )
 
 var (
@@ -21,6 +25,9 @@ func SendMessage(c *gin.Context) {
 	recipient := c.PostForm("recipient")
 	attachment := c.PostForm("attachment")
 
+	//convert attachment to []byte
+	attachment_data := []byte(attachment)
+
 	formatted_recipient := strings.ReplaceAll(recipient, "-", "")
 
 	sender_address, err := mail.ParseAddress("w9999999900000000@rc24.xyz")
@@ -32,9 +39,6 @@ func SendMessage(c *gin.Context) {
 	if err != nil {
 		fmt.Println(err)
 	}
-
-	//convert attachment to []byte
-	attachment_data := []byte(attachment)
 
 	//initialize the message
 	data := nwc24.NewMessage(sender_address, recipient_address)
@@ -57,7 +61,7 @@ func SendMessage(c *gin.Context) {
 
 	//add the multipart to the message
 	data.AddMultipart(multipart, img_multipart)
-	
+
 	content, err := data.ToString()
 	if err != nil {
 		fmt.Println(err)
@@ -65,11 +69,15 @@ func SendMessage(c *gin.Context) {
 		fmt.Println(content)
 	}
 
+	// Fetch the message from the form
+	uploadToGenerator(c, "letter", "letter.png")
+	uploadToGenerator(c, "thumbnail", "thumbnail.png")
+	generateLetterhead()
+
 	_, err = wiiMailPool.Exec(ctx, InsertMail, flakeNode.Generate(), content, "9999999900000000", formatted_recipient)
 	if err != nil {
 		fmt.Println(err)
 	}
-
 }
 
 func CheckInboundOutbound(c *gin.Context) {
@@ -77,5 +85,65 @@ func CheckInboundOutbound(c *gin.Context) {
 }
 
 func ClearInbound(c *gin.Context) {
-	
+
+}
+
+func uploadToGenerator(c *gin.Context, source string, destination string) {
+	file, header, err := c.Request.FormFile(source)
+	if err != nil {
+		log.Printf("Failed to get uploaded file: %v", err)
+		return
+	}
+	defer file.Close()
+
+	// Get the filename
+	filename := header.Filename
+	fmt.Println("Received file:", filename)
+
+	// Ensure the generator/input directory exists
+	err = os.MkdirAll("generator/input", os.ModePerm)
+	if err != nil {
+		log.Printf("Failed to create directory: %v", err)
+		return
+	}
+
+	// Create a file for the letterhead
+	out, err := os.Create("generator/input/" + destination)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer out.Close()
+
+	// Write the uploaded file to the created file
+	_, err = io.Copy(out, file)
+	if err != nil {
+		log.Printf("Failed to write letterhead data: %v", err)
+	}
+}
+
+func generateLetterhead() (string, error) {
+    var out bytes.Buffer
+    var stderr bytes.Buffer
+
+    // Run generate.sh
+    cmd := exec.Command("sh", "generator/generate.sh")
+    cmd.Stdout = &out
+    cmd.Stderr = &stderr
+
+    log.Printf("Running command and waiting for it to finish...")
+    err := cmd.Run()
+    if err != nil {
+        return "", fmt.Errorf("failed to run generate.sh: %v: %s", err, stderr.String())
+    }
+
+    // Read the data from generator/output/letterhead.txt
+    letterheadData, err := ioutil.ReadFile("generator/output/letterhead.txt")
+    if err != nil {
+        return "", fmt.Errorf("failed to read file: %v", err)
+    }
+
+    // Convert the data to a string and store it in a variable
+    letterheadContent := string(letterheadData)
+    log.Printf("Letterhead content: %v", letterheadContent)
+    return letterheadContent, nil
 }
