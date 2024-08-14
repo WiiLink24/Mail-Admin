@@ -4,13 +4,15 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 
 	"github/WiiLink24/Mail-Webpanel/middleware"
+
+	"github.com/bwmarrin/snowflake"
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/oauth2"
-	"github.com/bwmarrin/snowflake"
 )
 
 var (
@@ -74,6 +76,8 @@ func main() {
 	auth.Use(middleware.AuthenticationMiddleware())
 	{
 		auth.GET("/send", CreateMessagePage)
+		auth.POST("/send", func (c *gin.Context) {
+			c.Redirect(http.StatusMovedPermanently, "/send")})
 		auth.POST("/send_message", SendMessage)
 		auth.GET("/clear", ClearMessagesPage)
 		auth.GET("/misc", MiscPage)
