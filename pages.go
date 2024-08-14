@@ -7,7 +7,9 @@ import (
 )
 
 func CreateMessagePage(c *gin.Context) {
-	c.HTML(http.StatusOK, "send_message.html", nil)
+	c.HTML(http.StatusOK, "send_message.html", gin.H{
+		"Title": "Send Message | WiiLink Mail",
+	})
 }
 
 func ClearMessagesPage(c *gin.Context) {

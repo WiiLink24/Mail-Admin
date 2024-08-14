@@ -23,10 +23,8 @@ func SendMessage(c *gin.Context) {
     subject := c.PostForm("subject")
     message := c.PostForm("message_content")
     recipient := c.PostForm("recipient")
-    /* attachment := c.PostForm("attachment")
+    attachment := c.PostForm("attachment")
 
-    //convert attachment to []byte
-    attachment_data := []byte(attachment) */
 
     conv_message := utf16.Encode([]rune(message))
     message = nwc24.UTF16ToString(conv_message)
@@ -91,23 +89,19 @@ func SendMessage(c *gin.Context) {
     //initialize the message
     data := nwc24.NewMessage(sender_address, recipient_address)
     data.SetSubject(subject)
-    /* data.SetText(message, nwc24.UTF16BE) */
     data.SetBoundary(generateBoundary())
     data.SetContentType(nwc24.MultipartMixed)
     data.SetTag("X-Wii-MB-NoReply", "1")
 
-    //create the multipart
-    multipart := nwc24.NewMultipart()
+    //create the text multipart
+    text_multipart := nwc24.NewMultipart()
 
     //now we append the data
-    multipart.SetText(message, nwc24.UTF16BE)
-    multipart.SetContentType(nwc24.PlainText)
-/* 
-    img_multipart := nwc24.NewMultipart()
-    img_multipart.AddFile("attachment", attachment_data, nwc24.Jpeg) */
+    text_multipart.SetText(message, nwc24.UTF16BE)
+    text_multipart.SetContentType(nwc24.PlainText)
 
     //add the multipart to the message
-    data.AddMultipart(multipart)
+    data.AddMultipart(text_multipart)
 
     content, err := nwc24.CreateMessageToSend(generateBoundary(), data)
     if err != nil {
@@ -129,6 +123,7 @@ func SendMessage(c *gin.Context) {
             uploadToGenerator(c, "audio", "sound.wav")
         }
         letterheadContent, _ := generateLetterhead()
+
 		log.Printf("Letterhead content: %s", letterheadContent)
     } else {
         fmt.Println("No letter or thumbnail uploaded, skipping...")
