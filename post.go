@@ -17,6 +17,10 @@ import (
 var (
 	InsertMail        = `INSERT INTO mail (snowflake, data, sender, recipient, is_sent) VALUES ($1, $2, $3, $4, false)`
 	CheckRegistration = `SELECT EXISTS(SELECT 1 FROM accounts WHERE mlid = $1)`
+    CheckInboundOutbound = `SELECT (SELECT COUNT(*) FROM mail WHERE recipient = $1 AND is_sent = false) AS inbound_count, (SELECT COUNT(*) FROM mail WHERE sender = $1 AND is_sent = false) AS outbound_count`
+    CheckOutbound = `SELECT COUNT(*) FROM mail WHERE sender = $1 AND is_sent = false`
+    DeleteInbound = `DELETE FROM mail WHERE recipient = $1 AND is_sent = false`
+    DeleteOutbound = `DELETE FROM mail WHERE sender = $1 AND is_sent = false`
 )
 
 func SendMessage(c *gin.Context) {
@@ -189,13 +193,112 @@ func SendMessage(c *gin.Context) {
 	c.Redirect(http.StatusTemporaryRedirect, "/send#success")
 }
 
-// idk if this works
-func encodeToUTF16BE(s string) []byte {
-    runes := utf16.Encode([]rune(s))
-    buf := make([]byte, len(runes)*2)
-    for i, r := range runes {
-        buf[i*2] = byte(r >> 8)
-        buf[i*2+1] = byte(r)
+func CheckInOutMessages(c *gin.Context) {
+    wiiNumber := c.PostForm("wii_number")
+
+    formatted_number := strings.ReplaceAll(wiiNumber, "-", "")
+
+    if !validateFriendCode(formatted_number) {
+        c.HTML(http.StatusInternalServerError, "inbound.html", gin.H{
+            "Error": "This Wii Number is invalid (most likely a default Dolphin number).",
+        })
     }
-    return buf
+
+    var exists bool
+	row, err := wiiMailPool.Query(ctx, CheckRegistration, formatted_number)
+	if err != nil {
+		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+			"Error": "Couldn't query the database.",
+		})
+	}
+
+	for row.Next() {
+		err = row.Scan(&exists)
+		if err != nil {
+			c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+				"Error": "Couldn't scan the rows.",
+			})
+		}
+	}
+
+	if !exists {
+		c.HTML(http.StatusInternalServerError, "send_message.html", gin.H{
+			"Error": "This Wii Number is not registered in the database.",
+		})
+	}
+
+    var inbound, outbound int
+    rows, err := wiiMailPool.Query(ctx, CheckInboundOutbound, formatted_number)
+    if err != nil {
+        c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+            "Error": "Couldn't query the database.",
+        })
+    }
+
+    for rows.Next() {
+        err = rows.Scan(&inbound, &outbound)
+        if err != nil {
+            c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+                "Error": "Couldn't scan the rows.",
+            })
+        }
+    }
+
+    c.HTML(http.StatusOK, "inbound.html", gin.H{
+        "Title": "Check Messages | WiiLink Mail",
+        "Inbound": inbound,
+        "Outbound": outbound,
+    })
+
+}
+
+func DeleteMessages(c *gin.Context) {
+    action_type := c.PostForm("type")
+    wiiNumber := c.PostForm("wii_number")
+
+    formatted_number := strings.ReplaceAll(wiiNumber, "-", "")
+
+    if !validateFriendCode(formatted_number) {
+        c.HTML(http.StatusInternalServerError, "inbound.html", gin.H{
+            "Error": "This Wii Number is invalid (most likely a default Dolphin number).",
+        })
+    }
+
+    var exists bool
+    row, err := wiiMailPool.Query(ctx, CheckRegistration, formatted_number)
+    if err != nil {
+        c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+            "Error": "Couldn't query the database.",
+        })
+    }
+
+    for row.Next() {
+        err = row.Scan(&exists)
+        if err != nil {
+            c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+                "Error": "Couldn't scan the rows.",
+            })
+        }
+    }
+    
+    if !exists {
+        c.HTML(http.StatusInternalServerError, "send_message.html", gin.H{
+            "Error": "This Wii Number is not registered in the database.",
+        })
+    }
+
+    if action_type == "inbound" {
+        _, err = wiiMailPool.Exec(ctx, DeleteInbound, formatted_number)
+        if err != nil {
+            fmt.Println(err)
+        }
+    } else if action_type == "outbound" {
+        _, err = wiiMailPool.Exec(ctx, DeleteOutbound, formatted_number)
+        if err != nil {
+            fmt.Println(err)
+        }
+    }
+
+    c.Redirect(http.StatusTemporaryRedirect, "/inbound#success")
+
 }
