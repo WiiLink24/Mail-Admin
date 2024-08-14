@@ -40,14 +40,15 @@
             style="display: none; aspect-ratio: 1.5 / 1;">
         <img src="" id="embedPreview" alt="Embed Preview"
             class="right-10 top-16 bg-white pl-1 pr-1 pt-1 pb-3 w-32 hover:scale-110 shadow-md shadow-black/20 h-auto hidden z-10 absolute transition-all">
-        <img src="" id="miiPreview" alt="Mii Preview" class="top-[4.3rem] left-5 h-auto z-10 hidden absolute" width="100px">
+        <img src="" id="miiPreview" alt="Mii Preview" class="top-[4.3rem] left-5 h-auto z-10 hidden absolute"
+            width="100px">
     </div>
     <div class="pl-5 pr-5 sm:pl-0 sm:pr-0">
         <form method="POST" enctype="multipart/form-data" action="/send_message">
             <div class="mb-4">
                 <h2>Send to</h2>
                 <div class="flex flex-row items-center gap-[3px]">
-                    <input type="radio" id="single" name="recipient_type" value="single" class="hidden-radio" />
+                    <input type="radio" id="single" name="recipient_type" value="single" class="hidden-radio" checked />
                     <label for="single" title="Single user"
                         class="radio-label w-1/3 rounded-l-xl rounded-r-md bg-gray-300 hover:bg-gray-400 dark:bg-slate-700 dark:hover:bg-slate-600">
                         <i class="p-1 fa-solid fa-user w-full text-center dark:text-white"></i>
@@ -129,7 +130,8 @@
                                 onchange="hasAudio()" />
                         </label>
                     </div>
-                    <p class="mt-2 opacity-60 text-right hover:underline cursor-pointer" onclick="toggle('recordModal')">Record now</p>
+                    <p class="mt-2 opacity-60 text-right hover:underline cursor-pointer"
+                        onclick="toggle('recordModal')">Record now</p>
                 </div>
                 <br>
                 <button type="submit"
