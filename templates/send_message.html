@@ -2,29 +2,6 @@
 {{if .Error}}
 <p style="color: red">{{.Error}}</p>
 {{end}}
-<div id="recordModal"
-    class="w-[600px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-slate-700 border-2 border-slate-600 shadow-lg shadow-white/5 p-5 rounded-xl hidden z-20 fixed">
-    <div class="flex flex-row items-center justify-between">
-        <h1 class="text-xl font-bold"><i class="fa-solid fa-microphone"></i> Record Audio</h1>
-        <i class="fa-solid fa-close text-xl hover:scale-110 hover:text-red-500 transition-all"
-            onclick="toggle('recordModal')"></i>
-    </div>
-    <hr class="mt-3 mb-3">
-    <div class="flex flex-row items-center gap-1">
-        <div id="startRecordBtn"
-            class="w-full p-3 bg-slate-500 hover:bg-slate-600 text-center rounded-l-lg rounded-r-sm transition-all"><i
-                class="fa-solid fa-play"></i></div>
-        <div id="stopRecordBtn"
-            class="w-full p-3 bg-slate-500 hover:bg-slate-600 opacity-30 cursor-not-allowed text-center rounded-l-sm rounded-r-lg transition-all"
-            disabled><i class="fa-solid fa-stop"></i></div>
-    </div>
-    <audio id="audioPlayback" class="w-full mt-3 rounded-lg" controls></audio>
-    <br>
-    <p class="opacity-60"><i class="fa-solid fa-circle-information"></i> Once recording stops, the recording will be
-        downloaded to your device and will be able to add it using the "Add audio" button.</p>
-</div>
-
-
 <div class="flex flex-row items-start justify-center gap-10">
     <div class="hidden xl:flex top-7 w-2/3 h-[705px] p-5 shadow-lg shadow-white/10 rounded-xl flex-col gap-5 animate-bg overflow-hidden relative"
         style="background-image: url('assets/img/bg.png'); background-size: 8px 8px; background-repeat: repeat;">
@@ -130,8 +107,8 @@
                                 onchange="hasAudio()" />
                         </label>
                     </div>
-                    <p class="mt-2 opacity-60 text-right hover:underline cursor-pointer"
-                        onclick="toggle('recordModal')">Record now</p>
+                    <a class="mt-2 opacity-60 text-right hover:underline block"
+                       href="https://products.aspose.app/audio/voice-recorder/wav" target="_blank" rel="noopener noreferrer">Record now</a>
                 </div>
                 <br>
                 <button type="submit"
@@ -278,67 +255,5 @@
     }
 
     document.addEventListener('DOMContentLoaded', initializePreviews);
-
-    let mediaRecorder;
-    let audioChunks = [];
-    const startRecordBtn = document.getElementById('startRecordBtn');
-    const stopRecordBtn = document.getElementById('stopRecordBtn');
-    const audioPlayback = document.getElementById('audioPlayback');
-
-    startRecordBtn.addEventListener('click', async () => {
-        // Request user permission to access audio input
-        stopRecordBtn.disabled = false;
-        stopRecordBtn.classList.remove('opacity-30');
-        stopRecordBtn.classList.remove('cursor-not-allowed');
-
-        startRecordBtn.disabled = true;
-        startRecordBtn.classList.add('opacity-30');
-        startRecordBtn.classList.add('cursor-not-allowed');
-
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaRecorder = new MediaRecorder(stream);
-
-        // When data is available, push it to audioChunks
-        mediaRecorder.ondataavailable = event => {
-            audioChunks.push(event.data);
-        };
-
-        // When recording stops, create a blob from the audio data and set it as the source for the audio element
-        mediaRecorder.onstop = () => {
-            try {
-                stopRecordBtn.disabled = true;
-                stopRecordBtn.classList.add('opacity-30');
-                stopRecordBtn.classList.add('cursor-not-allowed');
-
-                startRecordBtn.disabled = false;
-                startRecordBtn.classList.remove('opacity-30');
-                startRecordBtn.classList.remove('cursor-not-allowed');
-                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                const audioUrl = URL.createObjectURL(audioBlob);
-
-                const audioElement = document.getElementById('audioPlayback');
-                audioElement.src = audioUrl;
-
-                const a = document.createElement('a');
-                a.href = audioUrl;
-                a.download = 'audio.wav';
-                a.click();
-
-                audioChunks = [];
-            } catch (error) {
-                console.error('Error during mediaRecorder onstop:', error);
-            }
-        };
-
-        mediaRecorder.start();
-        startRecordBtn.disabled = true;
-        stopRecordBtn.disabled = false;
-    });
-
-    stopRecordBtn.addEventListener('click', () => {
-        mediaRecorder.stop();
-        startRecordBtn.disabled = false;
-        stopRecordBtn.disabled = true;
-    });
 </script>
 {{template "footer.tmpl"}}

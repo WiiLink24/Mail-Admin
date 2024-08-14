@@ -91,12 +91,12 @@ func generateLetterhead() (string, error) {
 		return "", fmt.Errorf("failed to run generate.sh: %v: %s", err, stderr.String())
 	}
 
-	// Read the data from generator/output/letterhead.txt
-	letterheadData, err := ioutil.ReadFile("generator/output/letterhead.txt")
+	// Read the data from generator/output/letterhead.arc
+	letterheadData, err := ioutil.ReadFile("generator/output/letterhead.arc")
 	if err != nil {
 		return "", fmt.Errorf("failed to read file: %v", err)
 	}
-
+	
 	// Convert the data to a string and store it in a variable
 	letterheadContent := string(letterheadData)
 	return letterheadContent, nil

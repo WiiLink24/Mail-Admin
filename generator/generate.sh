@@ -92,12 +92,6 @@ if [ ! -f "generator/letterhead.arc" ]; then
     exit
 fi
 
-rm -rf generator/output/*
-
-echo "\n${YELLOW}Converting letterhead.arc to base64...${RESET}\n"
-# Convert the letterhead.arc to base64
-base64 -b 76 -i generator/letterhead.arc -o generator/output/letterhead.txt
-
 if [ -f "generator/input/sound.wav" ]; then
     echo "\n${YELLOW}Encoding sound...${RESET}\n"
     generator/tools/sharpii BNS -to generator/input/sound.wav generator/sound.bns -m
@@ -110,14 +104,7 @@ if [ -f "generator/input/sound.wav" ]; then
 fi
 
 echo "\n${GREEN}${BOLD}The letterhead has been successfully created!${RESET}\n"
-
-echo "${CYAN}Do you want to keep the letterhead.arc file?${RESET} (y/n)"
-read keep
-if [ "$keep" = "n" ]; then
-    rm -rf generator/letterhead.arc
-    echo "\nThe letterhead has been removed.\n\n\n${GREEN}${BOLD}The operation has completed successfully.${RESET}"
-    exit
-fi
+rm -rf generator/input/*
 
 mv generator/letterhead.arc generator/output/letterhead.arc
 echo "\nThe letterhead.arc file has been moved to the 'generator/output' folder.\n\n\n${GREEN}${BOLD}The operation has completed successfully.${RESET}"
