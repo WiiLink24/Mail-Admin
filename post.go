@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"net/mail"
 	"strings"
 	"unicode/utf16"
@@ -13,6 +14,7 @@ import (
 
 var (
     InsertMail = `INSERT INTO mail (snowflake, data, sender, recipient, is_sent) VALUES ($1, $2, $3, $4, false)`
+    CheckRegistration = `SELECT EXISTS(SELECT 1 FROM accounts WHERE mlid = $1)`
 )
 
 func SendMessage(c *gin.Context) {
@@ -30,6 +32,39 @@ func SendMessage(c *gin.Context) {
     message = nwc24.UTF16ToString(conv_message)
 
     formatted_recipient := strings.ReplaceAll(recipient, "-", "")
+
+    //validations
+    //check if the recipient is valid
+    if !validateFriendCode(formatted_recipient) {
+        c.HTML(http.StatusInternalServerError, "send_message.html", gin.H{
+            "Error": "This Wii Number is invalid (most likely a default Dolphin number).",
+        })
+    }
+
+    //check if the recipient is registered
+    var exists bool
+    row, err := wiiMailPool.Query(ctx, CheckRegistration, formatted_recipient)
+    if err != nil {
+        c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+            "Error": "Couldn't query the database.",
+        })
+    }
+
+    for row.Next() {
+        err = row.Scan(&exists)
+        if err != nil {
+            c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+                "Error": "Couldn't scan the rows.",
+            })
+        }
+    }
+
+    if !exists {
+        c.HTML(http.StatusInternalServerError, "send_message.html", gin.H{
+            "Error": "This Wii Number is not registered in the database.",
+        })
+    }
+
 
     sender_address, err := mail.ParseAddress("w9999999900000000@rc24.xyz")
     if err != nil {
@@ -108,6 +143,8 @@ func SendMessage(c *gin.Context) {
     if err != nil {
         fmt.Println(err)
     }
+
+    c.Redirect(http.StatusTemporaryRedirect, "/send#success")
 }
 
 
