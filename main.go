@@ -81,6 +81,9 @@ func main() {
 		auth.POST("/send_message", SendMessage)
 		auth.GET("/clear", ClearMessagesPage)
 		auth.GET("/misc", MiscPage)
+		auth.POST("/checknumber", checkIsValidNumber)
+		auth.POST("/checkregistration", checkIsRegistered)
+		auth.POST("/removeaccount", RemoveAccount)
 		auth.GET("/logout", Logout)
 	}
 	// Start the server
