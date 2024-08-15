@@ -11,6 +11,7 @@ import (
 	"os/exec"
 	"strconv"
 	"time"
+	"unicode/utf16"
 
 	"github.com/WiiLink24/nwc24"
 	"github.com/gin-gonic/gin"
@@ -100,4 +101,14 @@ func generateLetterhead() (string, error) {
 	// Convert the data to a string and store it in a variable
 	letterheadContent := string(letterheadData)
 	return letterheadContent, nil
+}
+
+func encodeToUTF16BE(s string) []byte {
+    runes := utf16.Encode([]rune(s))
+    buf := make([]byte, len(runes)*2)
+    for i, r := range runes {
+        buf[i*2] = byte(r >> 8)
+        buf[i*2+1] = byte(r)
+    }
+    return buf
 }
