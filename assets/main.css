@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 @font-face {
-    font-family: "FOT-Greco";
+    font-family: FOT-Greco;
     src: url("/assets/FOT-Greco Std DB.ttf");
 }
 
@@ -14,6 +14,10 @@
 
     h2 {
         @apply mb-1 opacity-30;
+    }
+
+    #mailContent {
+        font-family: FOT-Greco;
     }
 
     .hidden-radio {
