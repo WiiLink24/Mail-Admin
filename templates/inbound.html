@@ -1,5 +1,16 @@
 {{template "base.tmpl"}}
 <div>
-    <h1>a</h1>
+    <form action="/checkinout" enctype="multipart/form-data" method="post">
+        <input type="radio" name="type" id="inbound" value="inbound" checked><input type="radio" name="type" id="outbound" value="outbound">
+        <input type="text" name="wii_number" placeholder="Enter a number to check in/out" required>
+        <input type="submit" value="Check">
+    </form>
+    <p>{{.Inbound}}</p>
+    <p>{{.Outbound}}</p>
+
+    <form action="/clear_messages" method="post" enctype="multipart/form-data">
+        <input type="text" name="wii_number" id="" placeholder="Enter a Wii Number">
+        <input type="submit" value="Clear Messages">
+    </form>
 </div>
 {{template "footer.tmpl"}}

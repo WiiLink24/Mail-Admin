@@ -80,6 +80,8 @@ func main() {
 			c.Redirect(http.StatusMovedPermanently, "/send")})
 		auth.POST("/send_message", SendMessage)
 		auth.GET("/clear", ClearMessagesPage)
+		auth.POST("/checkinout", CheckInOutMessages)
+		auth.POST("/clear_messages", DeleteMessages)
 		auth.GET("/misc", MiscPage)
 		auth.POST("/checknumber", checkIsValidNumber)
 		auth.POST("/checkregistration", checkIsRegistered)
