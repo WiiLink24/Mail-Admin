@@ -2,3 +2,4 @@ config.xml
 .DS_Store
 /generator/input
 /generator/output
+generated_message.txt

@@ -42,6 +42,19 @@
       .animate-bg {
           animation: bgMove 2s linear infinite;
       }
+
+      .fadeout {
+            animation: fadeOut 1s 5000ms forwards;
+      }
+
+        @keyframes fadeOut {
+            0% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
 }
 
 @layer utilities {

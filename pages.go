@@ -19,5 +19,3 @@ func ClearMessagesPage(c *gin.Context) {
 func MiscPage(c *gin.Context) {
 	c.HTML(http.StatusOK, "misc.html", nil)
 }
-
-

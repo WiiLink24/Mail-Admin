@@ -1,14 +1,15 @@
 package main
 
 import (
+	"encoding/base64"
+	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"net/mail"
 	"strings"
 	"unicode/utf16"
-	"encoding/base64"
-    "fmt"
-    "io"
+	"os"
 
 	"github.com/WiiLink24/nwc24"
 	"github.com/gin-gonic/gin"
@@ -37,6 +38,7 @@ func SendMessage(c *gin.Context) {
 	//check if the recipient is valid
 	if !validateFriendCode(formatted_recipient) {
 		c.HTML(http.StatusInternalServerError, "send_message.html", gin.H{
+			"Title": "Send Message | WiiLink Mail",
 			"Error": "This Wii Number is invalid (most likely a default Dolphin number).",
 		})
 	}
@@ -46,6 +48,7 @@ func SendMessage(c *gin.Context) {
 	row, err := wiiMailPool.Query(ctx, CheckRegistration, formatted_recipient)
 	if err != nil {
 		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+			"Title": "Error | WiiLink Mail",
 			"Error": "Couldn't query the database.",
 		})
 	}
@@ -54,6 +57,7 @@ func SendMessage(c *gin.Context) {
 		err = row.Scan(&exists)
 		if err != nil {
 			c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+				"Title": "Error | WiiLink Mail",
 				"Error": "Couldn't scan the rows.",
 			})
 		}
@@ -61,6 +65,7 @@ func SendMessage(c *gin.Context) {
 
 	if !exists {
 		c.HTML(http.StatusInternalServerError, "send_message.html", gin.H{
+			"Title": "Send Message | WiiLink Mail",
 			"Error": "This Wii Number is not registered in the database.",
 		})
 	}
@@ -113,30 +118,29 @@ func SendMessage(c *gin.Context) {
 	//add the multipart to the message
 	data.AddMultipart(text_multipart)
 
-
 	// Attach the attachment image if it exists
 	if err != nil {
 		fmt.Println("Error retrieving the file:", err)
 		return
 	}
-	
+
 	if attachment != nil {
 		attachmentMultipart := nwc24.NewMultipart()
 		attachmentMultipart.SetContentType(nwc24.Jpeg)
-	
+
 		file, err := attachment.Open()
 		if err != nil {
 			fmt.Println("Error opening the file:", err)
 			return
 		}
 		defer file.Close()
-	
+
 		attachmentBytes, err := io.ReadAll(file)
 		if err != nil {
 			fmt.Println("Error reading the file:", err)
 			return
 		}
-	
+
 		attachmentMultipart.AddFile("attachment", attachmentBytes, nwc24.Jpeg)
 		data.AddMultipart(attachmentMultipart)
 	} else {
@@ -167,13 +171,25 @@ func SendMessage(c *gin.Context) {
 	} else {
 		fmt.Println("No letter or thumbnail uploaded, skipping...")
 	}
-	
+
 	// Generate the message
 	content, err := nwc24.CreateMessageToSend(generateBoundary(), data)
 	if err != nil {
 		fmt.Println(err)
 	} else {
 		fmt.Println(content)
+
+		// Write into txt file
+		file, err := os.Create("generated_message.txt")
+		if err != nil {
+			fmt.Println("Error creating file:", err)
+		} else {
+			defer file.Close()
+			_, err = file.WriteString(content)
+			if err != nil {
+				fmt.Println("Error writing to file:", err)
+			}
+		}
 	}
 
 	if recipient_type == "all" {
@@ -191,11 +207,11 @@ func SendMessage(c *gin.Context) {
 
 // idk if this works
 func encodeToUTF16BE(s string) []byte {
-    runes := utf16.Encode([]rune(s))
-    buf := make([]byte, len(runes)*2)
-    for i, r := range runes {
-        buf[i*2] = byte(r >> 8)
-        buf[i*2+1] = byte(r)
-    }
-    return buf
+	runes := utf16.Encode([]rune(s))
+	buf := make([]byte, len(runes)*2)
+	for i, r := range runes {
+		buf[i*2] = byte(r >> 8)
+		buf[i*2+1] = byte(r)
+	}
+	return buf
 }

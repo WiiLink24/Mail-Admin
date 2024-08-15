@@ -1,7 +1,8 @@
 {{template "base.tmpl"}}
 {{if .Error}}
-<p style="color: red">{{.Error}}</p>
+<p class="fadeout right-5 top-5 px-5 py-3 bg-red-500 text-white rounded-lg z-10 absolute"><i class="fa-solid fa-circle-exclamation"></i> {{.Error}}</p>
 {{end}}
+<p id="success" class="fadeout right-5 top-5 px-5 py-3 bg-green-500 text-white rounded-lg z-10 absolute hidden"><i class="fa-solid fa-circle-check"></i> The mail was generated and sent successfully.</p>
 <div class="flex flex-row items-start justify-center gap-10">
     <div class="hidden xl:flex top-7 w-2/3 h-[705px] p-5 shadow-lg shadow-white/10 rounded-xl flex-col gap-5 animate-bg overflow-hidden relative"
         style="background-image: url('assets/img/bg.png'); background-size: 8px 8px; background-repeat: repeat;">
@@ -120,6 +121,10 @@
 </div>
 
 <script>
+    if (window.location.hash === '#success') {
+        document.getElementById('success').classList.remove('hidden');
+    }
+
     function toggle(id) {
         const modal = document.getElementById(id);
         modal.classList.toggle('hidden');
