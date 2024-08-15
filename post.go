@@ -7,9 +7,9 @@ import (
 	"log"
 	"net/http"
 	"net/mail"
+	"os"
 	"strings"
 	"unicode/utf16"
-	"os"
 
 	"github.com/WiiLink24/nwc24"
 	"github.com/gin-gonic/gin"
@@ -22,6 +22,7 @@ var (
     CheckOutbound = `SELECT COUNT(*) FROM mail WHERE sender = $1 AND is_sent = false`
     DeleteInbound = `DELETE FROM mail WHERE recipient = $1 AND is_sent = false`
     DeleteOutbound = `DELETE FROM mail WHERE sender = $1 AND is_sent = false`
+	DeleteAccount = `DELETE FROM accounts WHERE mlid = $1`
 )
 
 func SendMessage(c *gin.Context) {
@@ -318,3 +319,111 @@ func DeleteMessages(c *gin.Context) {
     c.Redirect(http.StatusTemporaryRedirect, "/inbound#success")
 
 }
+
+func checkIsValidNumber(c *gin.Context) {
+	wiiNumber := c.PostForm("wii_number")
+
+	formatted_number := strings.ReplaceAll(wiiNumber, "-", "")
+
+	if !validateFriendCode(formatted_number) {
+		c.HTML(http.StatusOK, "misc.html", gin.H{
+			"Title": "Miscellaneous | WiiLink Mail",
+			"Result": "This Wii Number is invalid (most likely a default Dolphin number).",
+		})
+	} else {
+		c.HTML(http.StatusOK, "misc.html", gin.H{
+			"Title": "Miscellaneous | WiiLink Mail",
+			"Result": "This Wii Number is valid.",
+		})
+	}
+}
+
+func checkIsRegistered(c *gin.Context) {
+	wiiNumber := c.PostForm("wii_number")
+
+	formatted_number := strings.ReplaceAll(wiiNumber, "-", "")
+
+	var exists bool
+	row, err := wiiMailPool.Query(ctx, CheckRegistration, formatted_number)
+	if err != nil {
+		c.HTML(http.StatusOK, "misc.html", gin.H{
+			"Title": "Miscellaneous | WiiLink Mail",
+			"Error": "Couldn't query the database.",
+		})
+	}
+
+	for row.Next() {
+		err = row.Scan(&exists)
+		if err != nil {
+			c.HTML(http.StatusOK, "misc.html", gin.H{
+				"Title": "Miscellaneous | WiiLink Mail",
+				"Error": "Couldn't scan the rows.",
+			})
+		}
+	}
+
+	if exists {
+		c.HTML(http.StatusOK, "misc.html", gin.H{
+			"Title": "Miscellaneous | WiiLink Mail",
+			"Result": "This Wii Number is registered in the database.",
+		})
+	} else {
+		c.HTML(http.StatusOK, "misc.html", gin.H{
+			"Title": "Miscellaneous | WiiLink Mail",
+			"Result": "This Wii Number is not registered.",
+		})
+	}
+}
+
+func RemoveAccount(c *gin.Context) {
+	wiiNumber := c.PostForm("wii_number")
+
+	formatted_number := strings.ReplaceAll(wiiNumber, "-", "")
+
+	if !validateFriendCode(formatted_number) {
+		c.HTML(http.StatusOK, "misc.html", gin.H{
+			"Title": "Miscellaneous | WiiLink Mail",
+			"Error": "This Wii Number is invalid (most likely a default Dolphin number).",
+		})
+	}
+
+	var exists bool
+	row, err := wiiMailPool.Query(ctx, CheckRegistration, formatted_number)
+	if err != nil {
+		c.HTML(http.StatusOK, "misc.html", gin.H{
+			"Title": "Miscellaneous | WiiLink Mail",
+			"Error": "Couldn't query the database.",
+		})
+	}
+
+	for row.Next() {
+		err = row.Scan(&exists)
+		if err != nil {
+			c.HTML(http.StatusOK, "misc.html", gin.H{
+				"Title": "Miscellaneous | WiiLink Mail",
+				"Error": "Couldn't scan the rows.",
+			})
+		}
+	}
+
+	if !exists {
+		c.HTML(http.StatusOK, "misc.html", gin.H{
+			"Title": "Miscellaneous | WiiLink Mail",
+			"Error": "This Wii Number is not registered in the database.",
+		})
+	} else {
+		_, err = wiiMailPool.Exec(ctx, DeleteAccount, formatted_number)
+		if err != nil {
+			c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+				"Title": "Error | WiiLink Mail",
+				"Error": "Couldn't delete the account.",
+			})
+		}
+
+		c.HTML(http.StatusOK, "misc.html", gin.H{
+			"Title": "Miscellaneous | WiiLink Mail",
+			"Result": "The account has been removed.",
+		})
+	}
+}
+
