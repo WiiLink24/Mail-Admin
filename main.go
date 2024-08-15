@@ -77,9 +77,13 @@ func main() {
 	{
 		auth.GET("/send", CreateMessagePage)
 		auth.POST("/send", func (c *gin.Context) {
-			c.Redirect(http.StatusMovedPermanently, "/send")})
+			c.Redirect(http.StatusMovedPermanently, "/send")
+		})
 		auth.POST("/send_message", SendMessage)
 		auth.GET("/clear", ClearMessagesPage)
+		auth.POST("/clear", func (c *gin.Context) {
+			c.Redirect(http.StatusMovedPermanently, "/clear")
+		})
 		auth.POST("/checkinout", CheckInOutMessages)
 		auth.POST("/clear_messages", DeleteMessages)
 		auth.GET("/misc", MiscPage)

@@ -316,7 +316,7 @@ func DeleteMessages(c *gin.Context) {
         }
     }
 
-    c.Redirect(http.StatusTemporaryRedirect, "/inbound#success")
+    c.Redirect(http.StatusTemporaryRedirect, "/clear#success")
 
 }
 
