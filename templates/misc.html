@@ -1,5 +1,16 @@
 {{template "base.tmpl"}}
 <div>
-    <h1>b</h1>
+    <form action="/checknumber" method="post" enctype="multipart/form-data">
+        <input type="text" name="wii_number" placeholder="Enter a number to check validation" required>
+        <input type="submit" value="Check">
+    </form>
+    <form action="/checkregistration" method="post" enctype="multipart/form-data">
+        <input type="text" name="wii_number" placeholder="Enter a number to check registration" required>
+        <input type="submit" value="Check">
+    </form>
+    <form action="/removeaccount" method="post" enctype="multipart/form-data">
+        <input type="text" name="wii_number" placeholder="Enter a number to remove" required>
+        <input type="submit" value="Check">
+    <p>{{.Result}}</p>
 </div>
 {{template "footer.tmpl"}}

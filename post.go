@@ -328,7 +328,7 @@ func checkIsValidNumber(c *gin.Context) {
 	if !validateFriendCode(formatted_number) {
 		c.HTML(http.StatusOK, "misc.html", gin.H{
 			"Title": "Miscellaneous | WiiLink Mail",
-			"Result": "This Wii Number is invalid (most likely a default Dolphin number).",
+			"Result": "This Wii Number is invalid. It could be either a default Dolphin number, or a mistyped number.",
 		})
 	} else {
 		c.HTML(http.StatusOK, "misc.html", gin.H{

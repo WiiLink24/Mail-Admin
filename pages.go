@@ -17,5 +17,7 @@ func ClearMessagesPage(c *gin.Context) {
 }
 
 func MiscPage(c *gin.Context) {
-	c.HTML(http.StatusOK, "misc.html", nil)
+	c.HTML(http.StatusOK, "misc.html", gin.H{
+		"Title": "Miscellaneous | WiiLink Mail",
+	})
 }
