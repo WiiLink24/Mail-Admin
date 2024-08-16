@@ -27,6 +27,7 @@ type Config struct {
 	WiiMailDatabaseAddress string     `xml:"wiiMailDatabaseAddress"`
 	WiiMailDatabaseName    string     `xml:"wiiMailDatabaseName"`
 	Address                string     `xml:"address"`
+	AssetsPath			 string     `xml:"assetsPath"`
 	OIDCConfig             OIDCConfig `xml:"oidc"`
 }
 

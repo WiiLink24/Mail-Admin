@@ -199,7 +199,10 @@ func SendMessage(c *gin.Context) {
 
 	if recipient_type == "all" {
 		//insert null value for recipient
-		_, err = wiiMailPool.Exec(ctx, InsertMail, flakeNode.Generate(), content, "9999999900000000", "")
+		_, err = encryptMessage(content)
+		if err != nil {
+			fmt.Println(err)
+		}
 	} else {
 		_, err = wiiMailPool.Exec(ctx, InsertMail, flakeNode.Generate(), content, "9999999900000000", formatted_recipient)
 	}

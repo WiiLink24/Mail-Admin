@@ -9,6 +9,8 @@
     <wiiMailDatabaseAddress>127.0.0.1</wiiMailDatabaseAddress>
     <wiiMailDatabaseName>mail</wiiMailDatabaseName>
 
+    <assetsPath>assets</assetsPath>
+
     <!-- OIDC credentials/data -->
     <oidc>
         <clientID></clientID>
