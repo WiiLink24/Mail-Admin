@@ -328,11 +328,13 @@ func checkIsValidNumber(c *gin.Context) {
 	if !validateFriendCode(formatted_number) {
 		c.HTML(http.StatusOK, "misc.html", gin.H{
 			"Title": "Miscellaneous | WiiLink Mail",
+			"TestName": "Wii Number Validation Result",
 			"Result": "This Wii Number is invalid. It could be either a default Dolphin number, or a mistyped number.",
 		})
 	} else {
 		c.HTML(http.StatusOK, "misc.html", gin.H{
 			"Title": "Miscellaneous | WiiLink Mail",
+			"TestName": "Wii Number Validation Result",
 			"Result": "This Wii Number is valid.",
 		})
 	}
@@ -365,11 +367,13 @@ func checkIsRegistered(c *gin.Context) {
 	if exists {
 		c.HTML(http.StatusOK, "misc.html", gin.H{
 			"Title": "Miscellaneous | WiiLink Mail",
+			"TestName": "Wii Number Registration Check",
 			"Result": "This Wii Number is registered in the database.",
 		})
 	} else {
 		c.HTML(http.StatusOK, "misc.html", gin.H{
 			"Title": "Miscellaneous | WiiLink Mail",
+			"TestName": "Wii Number Registration Check",
 			"Result": "This Wii Number is not registered.",
 		})
 	}
@@ -422,6 +426,7 @@ func RemoveAccount(c *gin.Context) {
 
 		c.HTML(http.StatusOK, "misc.html", gin.H{
 			"Title": "Miscellaneous | WiiLink Mail",
+			"TestName": "Account Removal",
 			"Result": "The account has been removed.",
 		})
 	}

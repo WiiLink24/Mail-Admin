@@ -1,8 +1,10 @@
 {{template "base.tmpl"}}
 {{if .Error}}
-<p class="fadeout right-5 top-5 px-5 py-3 bg-red-500 text-white rounded-lg z-10 absolute"><i class="fa-solid fa-circle-exclamation"></i> {{.Error}}</p>
+<p class="fadeout right-5 top-5 px-5 py-3 bg-red-500 text-white rounded-lg z-10 absolute"><i
+        class="fa-solid fa-circle-exclamation"></i> {{.Error}}</p>
 {{end}}
-<p id="success" class="fadeout right-5 top-5 px-5 py-3 bg-green-500 text-white rounded-lg z-10 absolute hidden"><i class="fa-solid fa-circle-check"></i> The mail was generated and sent successfully.</p>
+<p id="success" class="fadeout right-5 top-5 px-5 py-3 bg-green-500 text-white rounded-lg z-10 absolute hidden"><i
+        class="fa-solid fa-circle-check"></i> The mail was generated and sent successfully.</p>
 <div class="flex flex-row items-start justify-center gap-10">
     <div class="hidden xl:flex top-7 w-2/3 h-[705px] p-5 shadow-lg shadow-white/10 rounded-xl flex-col gap-5 animate-bg overflow-hidden relative"
         style="background-image: url('assets/img/bg.png'); background-size: 8px 8px; background-repeat: repeat;">
@@ -10,8 +12,9 @@
             class="w-[calc(100%-80px)] top-10 left-1/2 -translate-x-1/2 text-center text-xl z-10 absolute truncate overflow-ellipsis whitespace-nowrap">
         </p>
         <p id="mailContent"
-            class="w-[calc(100%-120px)] left-1/2 -translate-x-1/2 top-44 text-black font-serif z-10 absolute break-words leading-10 overflow-hidden"
-            style="display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical;"></p>
+            class="w-full left-1/2 -translate-x-1/2 top-44 text-black text-xl font-serif z-10 absolute break-words leading-10 overflow-hidden"
+            style="display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; word-break: break-all; white-space: pre-wrap; max-width: 34ch; font-family: 'Courier New', Courier, monospace;">
+        </p>
         <img src="assets/img/placeholder_letterhead.png" id="letterPreview" alt="Letter Preview"
             class="w-[calc(100%-40px)] h-auto z-0 absolute" style="aspect-ratio: 1.36 / 1;">
         <img src="" id="thumbnailPreview" alt="Thumbnail Preview" class="bottom-10 w-32 h-auto absolute"
@@ -109,7 +112,8 @@
                         </label>
                     </div>
                     <a class="mt-2 opacity-60 text-right hover:underline block"
-                       href="https://products.aspose.app/audio/voice-recorder/wav" target="_blank" rel="noopener noreferrer">Record now</a>
+                        href="https://products.aspose.app/audio/voice-recorder/wav" target="_blank"
+                        rel="noopener noreferrer">Record now</a>
                 </div>
                 <br>
                 <button type="submit"

@@ -1,16 +1,70 @@
 {{template "base.tmpl"}}
-<div>
-    <form action="/checknumber" method="post" enctype="multipart/form-data">
-        <input type="text" name="wii_number" placeholder="Enter a number to check validation" required>
-        <input type="submit" value="Check">
+<div class="sm:mx-0 mx-4 mt-10">
+    <h1 class="text-5xl font-bold">Miscelaneous tools</h1>
+    <h1 class="text-2xl mb-10">Different tools to check, verify, and delete Wii Numbers from our service.</h1>
+    {{if .Error}}
+    <p class="w-full mb-8 p-6 bg-red-500 rounded-xl"><b><i class="fa-solid fa-circle-exclamation"></i>
+            Error</b><br>{{.Error}}</p>
+    {{end}}
+    {{if .Result}}
+    <p class="w-full mb-8 p-6 bg-white/10 rounded-xl"><b>{{.TestName}}</b><br>{{.Result}}</p>
+    {{end}}
+
+    <div class="mb-3 flex flex-row items-center justify-between gap-5 w-full">
+        <h1 class="text-2xl font-bold">Wii Number Validation test</h1>
+        <h2 class="text-right">Check if a Wii Number is valid or invalid/dolphin-generated
+            one.</h2>
+    </div>
+    <form class="flex flex-row gap-1 items-center" action="/checknumber" method="post" enctype="multipart/form-data">
+        <input
+            class="w-full p-3 bg-white/10 hover:bg-white/15 border border-white/20 rounded-l-xl rounded-r-md dark:text-white transition-all"
+            type="text" name="wii_number" placeholder="Enter a number to check validation" oninput="formatRecipient(event)" required>
+        <button
+            class="p-4 bg-blue-500 border border-blue-500 hover:bg-blue-600 rounded-l-md rounded-r-xl cursor-pointer transition-all"
+            type="submit">
+            <i class="fa-solid fa-paper-plane"></i>
+        </button>
     </form>
-    <form action="/checkregistration" method="post" enctype="multipart/form-data">
-        <input type="text" name="wii_number" placeholder="Enter a number to check registration" required>
-        <input type="submit" value="Check">
+    <hr class="my-8 opacity-30">
+    <div class="mt-6 mb-3 flex flex-row items-center justify-between gap-5 w-full">
+        <h1 class="text-2xl font-bold">Wii Number Registration check</h1>
+        <h2 class="text-right">Check if a Wii Console is registered on the WiiLink Mail Database.</h2>
+    </div>
+    <form class="flex flex-row gap-1 items-center" action="/checkregistration" method="post"
+        enctype="multipart/form-data">
+        <input
+            class="w-full p-3 bg-white/10 hover:bg-white/15 border border-white/20 rounded-l-xl rounded-r-md dark:text-white transition-all"
+            type="text" name="wii_number" placeholder="Enter a number to check registration" oninput="formatRecipient(event)" required>
+        <button
+            class="p-4 bg-blue-500 border border-blue-500 hover:bg-blue-600 rounded-l-md rounded-r-xl cursor-pointer transition-all"
+            type="submit">
+            <i class="fa-solid fa-paper-plane"></i>
+        </button>
     </form>
-    <form action="/removeaccount" method="post" enctype="multipart/form-data">
-        <input type="text" name="wii_number" placeholder="Enter a number to remove" required>
-        <input type="submit" value="Check">
-    <p>{{.Result}}</p>
+    <hr class="my-8 opacity-30">
+    <div class="mt-6 mb-3 flex flex-row items-center justify-between gap-5 w-full">
+        <h1 class="text-2xl font-bold">Wii Number Removal</h1>
+        <h2 class="text-right">Remove a Wii Console the WiiLink Mail Database.</h2>
+    </div>
+    <form class="flex flex-row gap-1 items-center" action="/removeaccount" method="post" enctype="multipart/form-data">
+        <input
+            class="w-full p-3 bg-white/10 hover:bg-white/15 border border-white/20 rounded-l-xl rounded-r-md dark:text-white transition-all"
+            type="text" name="wii_number" placeholder="Enter a number to remove" oninput="formatRecipient(event)" required>
+        <button
+            class="p-4 bg-red-500 border border-red-500 hover:bg-red-600 rounded-l-md rounded-r-xl cursor-pointer transition-all"
+            type="submit">
+            <i class="fa-solid fa-trash"></i>
+        </button>
+    </form>
 </div>
+
+<script>
+    function formatRecipient(event) {
+        const input = event.target;
+        let value = input.value.replace(/\D/g, ''); // Remove all non-digit characters
+        value = value.substring(0, 16); // Limit to 16 digits
+        value = value.match(/.{1,4}/g)?.join('-') || value; // Add hyphen after every 4 digits
+        input.value = value;
+    }
+</script>
 {{template "footer.tmpl"}}

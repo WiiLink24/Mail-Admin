@@ -3,8 +3,11 @@
     <img src="https://www.wiilink24.com/img/IS-logo.png" class="!h-[60px] dark:invert" />
     <nav>
         <ul class="flex flex-row items-center justify-center gap-3">
-            <li><a class="inline-flex items-center gap-2" href="/send"><i class="fa-solid fa-envelope"></i>Send message</a></li> | 
-            <li class="px-6 py-1.5 bg-red-500 hover:bg-red-600 transition-all rounded-full"><a class="text-center" href="/clear" title="Clear inbounds/outbounds (helps fix mail in some scenarios)"><i class="fa-solid fa-trash"></i></a></li>
+            <li><a class="py-3 inline-flex items-center gap-2" href="/send"><i class="fa-solid fa-envelope"></i><span class="sm:block hidden">Send message</span></a></li> | 
+            <div class="flex flex-row gap-1">
+            <li class="px-6 py-1.5 bg-slate-500 hover:bg-slate-600 transition-all rounded-l-2xl rounded-r-sm" title="Miscelaneous"><a class="text-center" href="/misc"><i class="fa-solid fa-gear"></i></a></li>
+            <li class="px-6 py-1.5 bg-red-500 hover:bg-red-600 transition-all rounded-l-sm rounded-r-2xl"><a class="text-center" href="/clear" title="Clear inbounds/outbounds (helps fix mail in some scenarios)"><i class="fa-solid fa-trash"></i></a></li>
+            </div>
         </ul>
     </nav>
 </header>
