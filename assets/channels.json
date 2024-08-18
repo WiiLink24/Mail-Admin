@@ -1,0 +1,122 @@
+{
+    "forecast": {
+        "channel_name": "Forecast Channel",
+        "value": "484146xx",
+        "actions": {
+            "1": "launch the channel",
+            "2": "does stuff",
+            "3": "does some other stuff",
+            "4": "thing"
+        }
+    },
+    "news": {
+        "channel_name": "News Channel",
+        "value": "484147xx",
+        "actions": {
+            "1": "launch the channel",
+            "2": "does stuff",
+            "3": "does some other stuff",
+            "4": "thing"
+        }
+    },
+    "miicontest": {
+        "channel_name": "Mii Contest Channel",
+        "value": "484150xx",
+        "actions": {
+            "1": "launch the channel",
+            "2": "does stuff",
+            "3": "does some other stuff",
+            "4": "thing"
+        }
+    },
+    "evc": {
+        "channel_name": "Everybody Votes Channel",
+        "value": "48414axx",
+        "actions": {
+            "1": "launch the channel",
+            "2": "does stuff",
+            "3": "does some other stuff",
+            "4": "thing"
+        }
+    },
+    "nintendo": {
+        "channel_name": "Nintendo Channel",
+        "value": "484154xx",
+        "actions": {
+            "1": "launch the channel",
+            "2": "does stuff",
+            "3": "does some other stuff",
+            "4": "thing"
+        }
+    },
+    "internet": {
+        "channel_name": "Internet Channel",
+        "value": "484144xx",
+        "actions": {
+            "1": "launch the channel",
+            "2": "does stuff",
+            "3": "does some other stuff",
+            "4": "thing"
+        }
+    },
+    "wiispeak": {
+        "channel_name": "Wii Speak Channel",
+        "value": "484346xx",
+        "actions": {
+            "1": "launch the channel",
+            "2": "does stuff",
+            "3": "does some other stuff",
+            "4": "thing"
+        }
+    },
+    "wiiroom": {
+        "channel_name": "Wii Room",
+        "value": "484349xx",
+        "actions": {
+            "1": "launch the channel",
+            "2": "does stuff",
+            "3": "does some other stuff",
+            "4": "thing"
+        }
+    },
+    "digicam": {
+        "channel_name": "Digicam Print Channel",
+        "value": "484344xx",
+        "actions": {
+            "1": "launch the channel",
+            "2": "does stuff",
+            "3": "does some other stuff",
+            "4": "thing"
+        }
+    },
+    "demae": {
+        "channel_name": "Food Channel",
+        "value": "484348xx",
+        "actions": {
+            "1": "launch the channel",
+            "2": "does stuff",
+            "3": "does some other stuff",
+            "4": "thing"
+        }
+    },
+    "bodycheck": {
+        "channel_name": "Wii Fit Body Check Channel",
+        "value": "48464e4a",
+        "actions": {
+            "1": "launch the channel",
+            "2": "does stuff",
+            "3": "does some other stuff",
+            "4": "thing"
+        }
+    },
+    "mariokart": {
+        "channel_name": "Mario Kart Channel",
+        "value": "524d43xx",
+        "actions": {
+            "1": "launch the channel",
+            "2": "does stuff",
+            "3": "does some other stuff",
+            "4": "thing"
+        }
+    }
+}

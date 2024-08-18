@@ -13,8 +13,14 @@ import (
 	"time"
 	"unicode/utf16"
 
+	"github.com/SketchMaster2001/libwc24crypt"
 	"github.com/WiiLink24/nwc24"
 	"github.com/gin-gonic/gin"
+)
+
+var (
+	key = []byte{0xBE, 0x37, 0x15, 0xC3, 0x08, 0xF3, 0x41, 0xA8, 0xF1, 0x6F, 0x0E, 0xF4, 0xFB, 0x14, 0x97, 0xAF}
+	iv = []byte{70, 70, 20, 40, 143, 110, 36, 6, 184, 107, 135, 239, 96, 45, 80, 151}
 )
 
 func generateBoundary() string {
@@ -111,4 +117,19 @@ func encodeToUTF16BE(s string) []byte {
         buf[i*2+1] = byte(r)
     }
     return buf
+}
+
+func encryptMessage(message string) (string, error) {
+	rsa, err := os.ReadFile(GetConfig().AssetsPath + "/cmoc.pem")
+	if err != nil {
+		return "", fmt.Errorf("failed to read file: %v", err)
+	}
+
+	enc, err := libwc24crypt.EncryptWC24([]byte(message), key, iv, rsa)
+	if err != nil {
+		return "", fmt.Errorf("failed to encrypt message: %v", err)
+	}
+
+	return "", os.WriteFile(fmt.Sprintf("%s/output/annoucement.bin", GetConfig().AssetsPath), enc, 0664)
+
 }

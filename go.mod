@@ -3,6 +3,7 @@ module github/WiiLink24/Mail-Webpanel
 go 1.22.4
 
 require (
+	github.com/SketchMaster2001/libwc24crypt v0.0.0-20221114191055-b7fc8eef33ba
 	github.com/WiiLink24/nwc24 v0.0.0-20240814085438-31848a3afc3e
 	github.com/bwmarrin/snowflake v0.3.0
 	github.com/coreos/go-oidc/v3 v3.11.0
