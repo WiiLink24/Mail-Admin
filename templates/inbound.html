@@ -2,29 +2,62 @@
 <div class="sm:mx-0 mx-4 mt-10">
     <h1 class="text-5xl font-bold">Clear inbounds/outbounds</h1>
     <h1 class="text-2xl mb-10">Clear inbound or outbound mail for a Wii Console, can help fix mail sending.</h1>
-    <form action="/checkinout" enctype="multipart/form-data" method="post">
+
+    <div class="mt-6 mb-3 flex flex-row items-center justify-between gap-5 w-full">
+        <h1 class="text-2xl font-bold">Check inbound/outbound mail</h1>
+        <h2 class="text-right">Obtain all inbound and outbound mail from a Wii console.</h2>
+    </div>
+    <form class="flex items-center gap-1" action="/checkinout" enctype="multipart/form-data" method="post">
         <div class="flex gap-1">
-            <input type="radio" name="type" id="inbound" value="inbound" class="hidden peer">
+            <input type="radio" name="type" id="inbound" value="inbound" class="hidden-radio hidden" checked>
             <label for="inbound"
-                class="flex items-center justify-center w-10 h-10 rounded-l-xl rounded-r-sm bg-gray-500/30 cursor-pointer transition-all peer-checked:bg-gray-500/60 hover:bg-gray-500/60">
-                <i class="fa-solid fa-inbox"></i>
+                class="radio-label p-4 flex items-center justify-center rounded-l-xl rounded-r-md bg-gray-500/30 border border-gray-500/40 cursor-pointer transition-all hover:bg-gray-500/60 checked:bg-gray-600"
+                title="Check inbound">
+                <i class="fa-solid fa-circle-down"></i>
             </label>
 
-            <input type="radio" name="type" id="outbound" value="outbound" class="hidden peer">
+            <input type="radio" name="type" id="outbound" value="outbound" class="hidden-radio hidden">
             <label for="outbound"
-                class="flex items-center justify-center w-10 h-10 rounded-l-sm rounded-r-xl bg-gray-500/30 cursor-pointer transition-all peer-checked:bg-gray-500/60 hover:bg-gray-500/60">
-                <i class="fa-solid fa-paper-plane"></i>
+                class="radio-label p-4 flex items-center justify-center rounded-md bg-gray-500/30 border border-gray-500/40 cursor-pointer transition-all hover:bg-gray-500/60 checked:bg-gray-600"
+                title="Check outbound">
+                <i class="fa-solid fa-circle-up"></i>
             </label>
         </div>
-        <input type="text" name="wii_number" placeholder="Enter a number to check in/out" required>
-        <input type="submit" value="Check">
+        <input
+            class="flex-grow p-3 bg-white/10 hover:bg-white/15 border border-white/20 rounded-md dark:text-white transition-all"
+            type="text" name="wii_number" placeholder="Enter a number to check in/out" required>
+        <button
+            class="p-4 bg-blue-500 border border-blue-500 hover:bg-blue-600 rounded-l-md rounded-r-xl cursor-pointer transition-all"
+            type="submit">
+            <i class="fa-solid fa-paper-plane"></i>
+        </button>
     </form>
-    <p>{{.Inbound}}</p>
-    <p>{{.Outbound}}</p>
+    {{ if .Inbound }}
+    <div class="p-3 my-5 w-full rounded-xl bg-slate-500/20 border border-slate-500/30">
+        <b>Inbound:</b>
+        <p>{{.Inbound}}</p>
+        <br>
+        <hr class="opacity-30">
+        <br>
+        <b>Outbound:</b>
+        <p>{{.Outbound}}</p>
+    </div>
+    {{ end }}
 
-    <form action="/clear_messages" method="post" enctype="multipart/form-data">
-        <input type="text" name="wii_number" id="" placeholder="Enter a Wii Number">
-        <input type="submit" value="Clear Messages">
+    <hr class="my-8 opacity-30">
+    <div class="mt-6 mb-3 flex flex-row items-center justify-between gap-5 w-full">
+        <h1 class="text-2xl font-bold">Clear inbound/outbound mail</h1>
+        <h2 class="text-right">Clear all inbound and outbound mail from a Wii.</h2>
+    </div>
+    <form class="flex flex-row items-center gap-1" action="/clear_messages" method="post" enctype="multipart/form-data">
+        <input
+            class="w-full p-3 bg-white/10 hover:bg-white/15 border border-white/20 rounded-l-xl rounded-r-md dark:text-white transition-all"
+            type="text" name="wii_number" id="" placeholder="Enter a Wii Number to clear inbound/outbound mail">
+        <button
+            class="p-4 bg-red-500 border border-red-500 hover:bg-red-600 rounded-l-md rounded-r-xl cursor-pointer transition-all"
+            type="submit">
+            <i class="fa-solid fa-trash"></i>
+        </button>
     </form>
 </div>
 {{template "footer.tmpl"}}
