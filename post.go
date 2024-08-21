@@ -16,13 +16,13 @@ import (
 )
 
 var (
-	InsertMail        = `INSERT INTO mail (snowflake, data, sender, recipient, is_sent) VALUES ($1, $2, $3, $4, false)`
-	CheckRegistration = `SELECT EXISTS(SELECT 1 FROM accounts WHERE mlid = $1)`
-    CheckInboundOutbound = `SELECT (SELECT COUNT(*) FROM mail WHERE recipient = $1 AND is_sent = false) AS inbound_count, (SELECT COUNT(*) FROM mail WHERE sender = $1 AND is_sent = false) AS outbound_count`
-    CheckOutbound = `SELECT COUNT(*) FROM mail WHERE sender = $1 AND is_sent = false`
-    DeleteInbound = `DELETE FROM mail WHERE recipient = $1 AND is_sent = false`
-    DeleteOutbound = `DELETE FROM mail WHERE sender = $1 AND is_sent = false`
-	DeleteAccount = `DELETE FROM accounts WHERE mlid = $1`
+	InsertMail           = `INSERT INTO mail (snowflake, data, sender, recipient, is_sent) VALUES ($1, $2, $3, $4, false)`
+	CheckRegistration    = `SELECT EXISTS(SELECT 1 FROM accounts WHERE mlid = $1)`
+	CheckInboundOutbound = `SELECT (SELECT COUNT(*) FROM mail WHERE recipient = $1 AND is_sent = false) AS inbound_count, (SELECT COUNT(*) FROM mail WHERE sender = $1 AND is_sent = false) AS outbound_count`
+	CheckOutbound        = `SELECT COUNT(*) FROM mail WHERE sender = $1 AND is_sent = false`
+	DeleteInbound        = `DELETE FROM mail WHERE recipient = $1 AND is_sent = false`
+	DeleteOutbound       = `DELETE FROM mail WHERE sender = $1 AND is_sent = false`
+	DeleteAccount        = `DELETE FROM accounts WHERE mlid = $1`
 )
 
 func SendMessage(c *gin.Context) {
@@ -178,7 +178,15 @@ func SendMessage(c *gin.Context) {
 	}
 
 	// Generate the message
-	content, err := nwc24.CreateMessageToSend(generateBoundary(), data)
+	var content string
+	if recipient_type == "all" {
+		content, err = nwc24.CreateMessageToSend(generateBoundary(), data)
+	} else {
+		content, err = data.ToString()
+		// Remove the Content type at the top
+		content = strings.Replace(content, "Content-Type: text/plain\r\n\r\n", "", 1)
+	}
+
 	if err != nil {
 		fmt.Println(err)
 	} else {
@@ -214,17 +222,17 @@ func SendMessage(c *gin.Context) {
 }
 
 func CheckInOutMessages(c *gin.Context) {
-    wiiNumber := c.PostForm("wii_number")
+	wiiNumber := c.PostForm("wii_number")
 
-    formatted_number := strings.ReplaceAll(wiiNumber, "-", "")
+	formatted_number := strings.ReplaceAll(wiiNumber, "-", "")
 
-    if !validateFriendCode(formatted_number) {
-        c.HTML(http.StatusInternalServerError, "inbound.html", gin.H{
-            "Error": "This Wii Number is invalid (most likely a default Dolphin number).",
-        })
-    }
+	if !validateFriendCode(formatted_number) {
+		c.HTML(http.StatusInternalServerError, "inbound.html", gin.H{
+			"Error": "This Wii Number is invalid (most likely a default Dolphin number).",
+		})
+	}
 
-    var exists bool
+	var exists bool
 	row, err := wiiMailPool.Query(ctx, CheckRegistration, formatted_number)
 	if err != nil {
 		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
@@ -247,79 +255,79 @@ func CheckInOutMessages(c *gin.Context) {
 		})
 	}
 
-    var inbound, outbound int
-    rows, err := wiiMailPool.Query(ctx, CheckInboundOutbound, formatted_number)
-    if err != nil {
-        c.HTML(http.StatusInternalServerError, "error.html", gin.H{
-            "Error": "Couldn't query the database.",
-        })
-    }
+	var inbound, outbound int
+	rows, err := wiiMailPool.Query(ctx, CheckInboundOutbound, formatted_number)
+	if err != nil {
+		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+			"Error": "Couldn't query the database.",
+		})
+	}
 
-    for rows.Next() {
-        err = rows.Scan(&inbound, &outbound)
-        if err != nil {
-            c.HTML(http.StatusInternalServerError, "error.html", gin.H{
-                "Error": "Couldn't scan the rows.",
-            })
-        }
-    }
+	for rows.Next() {
+		err = rows.Scan(&inbound, &outbound)
+		if err != nil {
+			c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+				"Error": "Couldn't scan the rows.",
+			})
+		}
+	}
 
-    c.HTML(http.StatusOK, "inbound.html", gin.H{
-        "Title": "Check Messages | WiiLink Mail",
-        "Inbound": inbound,
-        "Outbound": outbound,
-    })
+	c.HTML(http.StatusOK, "inbound.html", gin.H{
+		"Title":    "Check Messages | WiiLink Mail",
+		"Inbound":  inbound,
+		"Outbound": outbound,
+	})
 
 }
 
 func DeleteMessages(c *gin.Context) {
-    action_type := c.PostForm("type")
-    wiiNumber := c.PostForm("wii_number")
+	action_type := c.PostForm("type")
+	wiiNumber := c.PostForm("wii_number")
 
-    formatted_number := strings.ReplaceAll(wiiNumber, "-", "")
+	formatted_number := strings.ReplaceAll(wiiNumber, "-", "")
 
-    if !validateFriendCode(formatted_number) {
-        c.HTML(http.StatusInternalServerError, "inbound.html", gin.H{
-            "Error": "This Wii Number is invalid (most likely a default Dolphin number).",
-        })
-    }
+	if !validateFriendCode(formatted_number) {
+		c.HTML(http.StatusInternalServerError, "inbound.html", gin.H{
+			"Error": "This Wii Number is invalid (most likely a default Dolphin number).",
+		})
+	}
 
-    var exists bool
-    row, err := wiiMailPool.Query(ctx, CheckRegistration, formatted_number)
-    if err != nil {
-        c.HTML(http.StatusInternalServerError, "error.html", gin.H{
-            "Error": "Couldn't query the database.",
-        })
-    }
+	var exists bool
+	row, err := wiiMailPool.Query(ctx, CheckRegistration, formatted_number)
+	if err != nil {
+		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+			"Error": "Couldn't query the database.",
+		})
+	}
 
-    for row.Next() {
-        err = row.Scan(&exists)
-        if err != nil {
-            c.HTML(http.StatusInternalServerError, "error.html", gin.H{
-                "Error": "Couldn't scan the rows.",
-            })
-        }
-    }
-    
-    if !exists {
-        c.HTML(http.StatusInternalServerError, "send_message.html", gin.H{
-            "Error": "This Wii Number is not registered in the database.",
-        })
-    }
+	for row.Next() {
+		err = row.Scan(&exists)
+		if err != nil {
+			c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+				"Error": "Couldn't scan the rows.",
+			})
+		}
+	}
 
-    if action_type == "inbound" {
-        _, err = wiiMailPool.Exec(ctx, DeleteInbound, formatted_number)
-        if err != nil {
-            fmt.Println(err)
-        }
-    } else if action_type == "outbound" {
-        _, err = wiiMailPool.Exec(ctx, DeleteOutbound, formatted_number)
-        if err != nil {
-            fmt.Println(err)
-        }
-    }
+	if !exists {
+		c.HTML(http.StatusInternalServerError, "send_message.html", gin.H{
+			"Error": "This Wii Number is not registered in the database.",
+		})
+	}
 
-    c.Redirect(http.StatusTemporaryRedirect, "/clear#success")
+	if action_type == "inbound" {
+		_, err = wiiMailPool.Exec(ctx, DeleteInbound, formatted_number)
+		if err != nil {
+			fmt.Println(err)
+		}
+	} else if action_type == "outbound" {
+		_, err = wiiMailPool.Exec(ctx, DeleteOutbound, formatted_number)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+
+	c.Redirect(http.StatusTemporaryRedirect, "/clear#success")
 
 }
 
@@ -330,15 +338,15 @@ func checkIsValidNumber(c *gin.Context) {
 
 	if !validateFriendCode(formatted_number) {
 		c.HTML(http.StatusOK, "misc.html", gin.H{
-			"Title": "Miscellaneous | WiiLink Mail",
+			"Title":    "Miscellaneous | WiiLink Mail",
 			"TestName": "Wii Number Validation Result",
-			"Result": "This Wii Number is invalid. It could be either a default Dolphin number, or a mistyped number.",
+			"Result":   "This Wii Number is invalid. It could be either a default Dolphin number, or a mistyped number.",
 		})
 	} else {
 		c.HTML(http.StatusOK, "misc.html", gin.H{
-			"Title": "Miscellaneous | WiiLink Mail",
+			"Title":    "Miscellaneous | WiiLink Mail",
 			"TestName": "Wii Number Validation Result",
-			"Result": "This Wii Number is valid.",
+			"Result":   "This Wii Number is valid.",
 		})
 	}
 }
@@ -369,15 +377,15 @@ func checkIsRegistered(c *gin.Context) {
 
 	if exists {
 		c.HTML(http.StatusOK, "misc.html", gin.H{
-			"Title": "Miscellaneous | WiiLink Mail",
+			"Title":    "Miscellaneous | WiiLink Mail",
 			"TestName": "Wii Number Registration Check",
-			"Result": "This Wii Number is registered in the database.",
+			"Result":   "This Wii Number is registered in the database.",
 		})
 	} else {
 		c.HTML(http.StatusOK, "misc.html", gin.H{
-			"Title": "Miscellaneous | WiiLink Mail",
+			"Title":    "Miscellaneous | WiiLink Mail",
 			"TestName": "Wii Number Registration Check",
-			"Result": "This Wii Number is not registered.",
+			"Result":   "This Wii Number is not registered.",
 		})
 	}
 }
@@ -428,10 +436,9 @@ func RemoveAccount(c *gin.Context) {
 		}
 
 		c.HTML(http.StatusOK, "misc.html", gin.H{
-			"Title": "Miscellaneous | WiiLink Mail",
+			"Title":    "Miscellaneous | WiiLink Mail",
 			"TestName": "Account Removal",
-			"Result": "The account has been removed.",
+			"Result":   "The account has been removed.",
 		})
 	}
 }
-
