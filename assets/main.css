@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+    font-family: FOT-Greco;
+    src: url("/assets/FOT-Greco Std DB.ttf");
+}
+
 @layer base {
     input[type="text"], textarea {
         @apply dark:text-black;
@@ -9,6 +14,10 @@
 
     h2 {
         @apply mb-1 opacity-30;
+    }
+
+    #mailContent {
+        font-family: FOT-Greco;
     }
 
     .hidden-radio {
