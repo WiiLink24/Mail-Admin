@@ -19,8 +19,8 @@ import (
 )
 
 var (
-	key = []byte{0xBE, 0x37, 0x15, 0xC3, 0x08, 0xF3, 0x41, 0xA8, 0xF1, 0x6F, 0x0E, 0xF4, 0xFB, 0x14, 0x97, 0xAF}
-	iv = []byte{70, 70, 20, 40, 143, 110, 36, 6, 184, 107, 135, 239, 96, 45, 80, 151}
+	key = []byte{0xdb, 0xfc, 0xe7, 0x34, 0x51, 0xda, 0xbd, 0xf3, 0xf4, 0x81, 0x37, 0xe5, 0xed, 0x00, 0xb6, 0xd2}
+	iv  = []byte{70, 70, 20, 40, 143, 110, 36, 6, 184, 107, 135, 239, 96, 45, 80, 151}
 )
 
 func generateBoundary() string {
@@ -103,20 +103,20 @@ func generateLetterhead() (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to read file: %v", err)
 	}
-	
+
 	// Convert the data to a string and store it in a variable
 	letterheadContent := string(letterheadData)
 	return letterheadContent, nil
 }
 
 func encodeToUTF16BE(s string) []byte {
-    runes := utf16.Encode([]rune(s))
-    buf := make([]byte, len(runes)*2)
-    for i, r := range runes {
-        buf[i*2] = byte(r >> 8)
-        buf[i*2+1] = byte(r)
-    }
-    return buf
+	runes := utf16.Encode([]rune(s))
+	buf := make([]byte, len(runes)*2)
+	for i, r := range runes {
+		buf[i*2] = byte(r >> 8)
+		buf[i*2+1] = byte(r)
+	}
+	return buf
 }
 
 func encryptMessage(message string) (string, error) {
