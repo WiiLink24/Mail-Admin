@@ -6,9 +6,9 @@
 <p id="success" class="fadeout right-5 top-5 px-5 py-3 bg-green-500 text-white rounded-lg z-10 absolute hidden"><i
         class="fa-solid fa-circle-check"></i> The mail was generated and sent successfully.</p>
 <div class="mt-20 sm:mt-0 flex flex-col items-start justify-center gap-10">
-    <div class="hidden sm:flex items-center justify-center p-5 w-full rounded-lg animate-bg" style="background-image: url('assets/img/bg.png'); background-size: 8px 8px; background-repeat: repeat;">
-        <div
-            class="w-[550px] flex flex-col gap-5 overflow-hidden relative">
+    <div class="hidden sm:flex items-center justify-center p-5 w-full rounded-lg animate-bg"
+        style="background-image: url('assets/img/bg.png'); background-size: 8px 8px; background-repeat: repeat;">
+        <div class="w-[550px] flex flex-col gap-5 overflow-hidden relative">
             <p id="mailSubject"
                 class="w-[calc(100%-80px)] top-7 left-1/2 -translate-x-1/2 text-center text-xl z-10 absolute truncate overflow-ellipsis whitespace-nowrap text-white">
             </p>
@@ -35,13 +35,27 @@
                             class="mt-2 w-full border rounded-t-xl rounded-b-md p-2 text-black"
                             oninput="updateText(event, 'mailSubject')" />
                         <textarea name="message_content" id="" cols="30" rows="4"
-                            class="mt-1 w-full h-[155px] border rounded-t-md rounded-b-xl p-2 text-black"
+                            class="mt-1 w-full h-[105px] border rounded-t-md rounded-b-xl p-2 text-black"
                             placeholder="Eg: There have been new contests posted for the Check Mii Out Channel! Go check them out and vote now!"
                             oninput="updateText(event, 'mailContent')"></textarea>
+
+                        <div class="mt-2">
+                            <select name="language" id="language" class="w-full border-0 rounded-xl p-2 text-black">
+                                <option value="2" selected>English</option>
+                                <option value="1">Japanese</option>
+                                <option value="3">Spanish</option>
+                                <option value="4">French</option>
+                                <option value="5">German</option>
+                                <option value="6">Dutch</option>
+                                <option value="7">Italian</option>
+                            </select>
+                        </div>
+
                     </div>
                 </div>
                 <div class="input xl:min-w-[400px]">
-                    <span class="mb-2 hover:cursor-help flex flex-row items-center justify-between gap-5 text-white" title="Custom parameters for mail.">Customization <span class="opacity-30">(jpeg &
+                    <span class="mb-2 hover:cursor-help flex flex-row items-center justify-between gap-5 text-white"
+                        title="Custom parameters for mail.">Customization <span class="opacity-30">(jpeg &
                             png)</span></span>
                     <label
                         class="bg-white cursor-pointer p-4 rounded-t-xl rounded-b-sm transition-all hover:bg-gray-200 text-black flex items-center justify-between gap-3"><i
