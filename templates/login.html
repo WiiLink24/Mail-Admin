@@ -1,71 +1,31 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>Login - Mail Panel</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap"
-      rel="stylesheet"
-    />
-    <link href="/assets/output.css" rel="stylesheet" />
-    <link
-      rel="apple-touch-icon"
-      sizes="180x180"
-      href="https://www.wiilink24.com/img/apple-touch-icon.png"
-    />
-    <link
-      rel="icon"
-      type="image/png"
-      sizes="32x32"
-      href="https://www.wiilink24.com/img/favicon-32x32.png"
-    />
-    <link
-      rel="icon"
-      type="image/png"
-      sizes="16x16"
-      href="https://www.wiilink24.com/img/favicon-16x16.png"
-    />
-    <link rel="manifest" href="https://www.wiilink24.com/img/site.webmanifest" />
-    <link rel="mask-icon" href="https://www.wiilink24.com/img/safari-pinned-tab.svg" color="#5bbad5" />
-    <link rel="shortcut icon" href="https://www.wiilink24.com/img/favicon.ico" />
-    <meta name="msapplication-TileColor" content="#ffffff" />
-    <meta name="msapplication-config" content="https://www.wiilink24.com/img/browserconfig.xml" />
-    <meta name="theme-color" content="#ffffff" />
-    <script
-      src="https://kit.fontawesome.com/e47ece3e74.js"
-      crossorigin="anonymous"
-    ></script>
-  </head>
-  <body
-    class="bg-slate-900 sso-bg text-white flex items-center justify-center absolute w-full h-full"
-  >
-    <main
-      class="flex flex-col items-center justify-center gap-3 relative w-[95%] max-w-lg"
-    >
-      <div class="flex items-center justify-between w-full">
-        <img
-          src="https://www.wiilink24.com/img/IS-logo.png"
-          class="!h-[60px] dark:invert"
-        />
-        <h2 class="text-right text-lg text-white opacity-100">
-          <b>WiiLink</b><br />
-          Mail Panel
-        </h2>
-      </div>
-      <div class="p-6 rounded-xl border-2 border-white/5 bg-black/5 backdrop-blur-lg">
-      <p class="opacity-90 text-left mt-3">
-        <i class="fa-solid fa-chevron-right"></i> With this tool you can write and send emails to some or all Wii consoles registered on our service.
-      </p>
-      <!-- {{if .Error}}
-        <p style="color:red;">{{.Error}}</p>
-        {{end}} -->
-      <a href="/start" class="w-full">
-        <button class="mt-5 p-3 w-full bg-blue-600 hover:bg-blue-700 active:scale-95 rounded-full transition-all">
-          <i class="fa-solid fa-right-to-bracket"></i> Log in with your WiiLink Account
-        </button>
-      </a>
-    </div>
-    </main>
-  </body>
-</html>
+{{ template "base.html" . }}
+
+    <div class="flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8">
+        <div class="max-w-md w-full">
+            <div class="relative group mb-8">
+                <div class="relative bg-gray-800 rounded-xl shadow-xl overflow-hidden border border-gray-700 p-8 glow-effect">
+                    <div class="rotate-180 flex items-center justify-center mb-6">
+                        <div class="p-3 bg-blue-600/20 rounded-full text-blue-400">
+                            <svg class="h-10 w-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mb-8">
+                        <p class="text-xl font-bold text-white mb-2">Welcome to The Bulletin</p>
+                        <p class="text-gray-300">Click below to authenticate and access administrative features</p>
+                    </div>
+                    
+                    <div class="flex justify-center">
+                        <button onclick="window.location.href='/start'" class="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition duration-200 flex items-center justify-center text-base font-medium">
+                            <svg class="rotate-180 h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+                            </svg>
+                            Log in with WiiLink Internal
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+{{template "footer.html"}}
