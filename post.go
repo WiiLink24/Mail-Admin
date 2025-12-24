@@ -39,68 +39,20 @@ func SendMessage(c *gin.Context) {
 
 	formatted_recipient := strings.ReplaceAll(recipient, "-", "")
 
-	//validations
-	//check if the recipient is valid
-	if !validateFriendCode(formatted_recipient) {
-		c.HTML(http.StatusInternalServerError, "send_message.html", gin.H{
-			"Title": "Send Message | WiiLink Mail",
-			"Error": "This Wii Number is invalid (most likely a default Dolphin number).",
-		})
-	}
-
-	//check if the recipient is registered
-	var exists bool
-	row, err := wiiMailPool.Query(ctx, CheckRegistration, formatted_recipient)
-	if err != nil {
-		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
-			"Title": "Error | WiiLink Mail",
-			"Error": "Couldn't query the database.",
-		})
-	}
-
-	for row.Next() {
-		err = row.Scan(&exists)
-		if err != nil {
-			c.HTML(http.StatusInternalServerError, "error.html", gin.H{
-				"Title": "Error | WiiLink Mail",
-				"Error": "Couldn't scan the rows.",
-			})
-		}
-	}
-
-	if !exists {
-		c.HTML(http.StatusInternalServerError, "send_message.html", gin.H{
-			"Title": "Send Message | WiiLink Mail",
-			"Error": "This Wii Number is not registered in the database.",
-		})
-	}
+	err := error(nil)
 
 	sender_address, err := mail.ParseAddress("w9999999900000000@rc24.xyz")
-	if err != nil {
-		fmt.Println(err)
-	}
 
 	var recipient_address *mail.Address
-
-	if recipient == "" && recipient_type == "all" {
-		recipient_address, err = mail.ParseAddress("allusers@rc24.xyz")
-		if err != nil {
-			fmt.Println(err)
-		}
-
-	} else if recipient != "" && recipient_type == "single" {
-		recipient_address, err = mail.ParseAddress("w" + formatted_recipient + "@rc24.xyz")
-		if err != nil {
-			fmt.Println(err)
-		}
-	} else {
-		fmt.Println("Invalid recipient type")
-	}
+	recipient_address, err = mail.ParseAddress("allusers@rc24.xyz")
 
 	//initialize the message
+	// Use distinct boundaries for the outer message and the inner
+	outerBoundary := generateBoundary()
+	innerBoundary := generateBoundary()
 	data := nwc24.NewMessage(sender_address, recipient_address)
 	data.SetSubject(subject)
-	data.SetBoundary(generateBoundary())
+	data.SetBoundary(innerBoundary)
 	data.SetContentType(nwc24.MultipartMixed)
 	data.SetTag("X-Wii-MB-NoReply", "1")
 
@@ -177,15 +129,8 @@ func SendMessage(c *gin.Context) {
 		fmt.Println("No letter or thumbnail uploaded, skipping...")
 	}
 
-	// Generate the message
 	var content string
-	if recipient_type == "all" {
-		content, err = nwc24.CreateMessageToSend(generateBoundary(), data)
-	} else {
-		content, err = data.ToString()
-		// Remove the Content type at the top
-		content = strings.Replace(content, "Content-Type: text/plain\r\n\r\n", "", 1)
-	}
+	content, err = nwc24.CreateMessageToSend(outerBoundary, data)
 
 	if err != nil {
 		fmt.Println(err)

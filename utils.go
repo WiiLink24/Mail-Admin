@@ -24,9 +24,7 @@ var (
 )
 
 func generateBoundary() string {
-	source := rand.NewSource(time.Now().Unix())
-	val := rand.New(source)
-	return fmt.Sprintf("%s/%d", time.Now().Format("200601021504"), val.Intn(8999999)+1000000)
+	return fmt.Sprintf("%s-%d", time.Now().Format("20060102150405"), rand.Int63())
 }
 
 func validateFriendCode(strId string) bool {

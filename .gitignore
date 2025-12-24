@@ -3,3 +3,5 @@ config.xml
 /generator/input
 /generator/output
 generated_message.txt
+generator/letterhead.arc
+.vscode/settings.json
