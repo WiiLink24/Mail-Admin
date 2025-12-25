@@ -5,13 +5,13 @@ import (
 	"os"
 )
 
-func GetConfig() Config {
+func GetConfig() *Config {
 	data, err := os.ReadFile("config.xml")
 	checkError(err)
 
-	var config Config
-	err = xml.Unmarshal(data, &config)
+	var _config Config
+	err = xml.Unmarshal(data, &_config)
 	checkError(err)
 
-	return config
+	return &_config
 }

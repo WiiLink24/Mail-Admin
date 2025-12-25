@@ -8,18 +8,15 @@ import (
 
 	"github/WiiLink24/Mail-Webpanel/middleware"
 
-	"github.com/bwmarrin/snowflake"
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/oauth2"
 )
 
 var (
-	ctx         = context.Background()
-	wiiMailPool *pgxpool.Pool
-	authConfig  *AppAuthConfig
-	flakeNode   *snowflake.Node
+	ctx        = context.Background()
+	authConfig *AppAuthConfig
+	config     *Config
 )
 
 func checkError(err error) {
@@ -29,7 +26,7 @@ func checkError(err error) {
 }
 
 func main() {
-	config := GetConfig()
+	config = GetConfig()
 
 	provider, err := oidc.NewProvider(ctx, config.OIDCConfig.Provider)
 	if err != nil {
@@ -46,16 +43,6 @@ func main() {
 		},
 		Provider: provider,
 	}
-
-	// Connect Wii Mail database
-	dbString := fmt.Sprintf("postgres://%s:%s@%s/%s", config.Username, config.Password, config.WiiMailDatabaseAddress, config.WiiMailDatabaseName)
-	wiiMailPool, err = pgxpool.New(ctx, dbString)
-	checkError(err)
-
-	defer wiiMailPool.Close()
-
-	flakeNode, err = snowflake.NewNode(1)
-	checkError(err)
 
 	r := gin.Default()
 
@@ -76,20 +63,15 @@ func main() {
 	auth.Use(middleware.AuthenticationMiddleware())
 	{
 		auth.GET("/send", CreateMessagePage)
-		auth.POST("/send", func (c *gin.Context) {
+		auth.POST("/send", func(c *gin.Context) {
 			c.Redirect(http.StatusMovedPermanently, "/send")
 		})
 		auth.POST("/send_message", SendMessage)
 		auth.GET("/clear", ClearMessagesPage)
-		auth.POST("/clear", func (c *gin.Context) {
+		auth.POST("/clear", func(c *gin.Context) {
 			c.Redirect(http.StatusMovedPermanently, "/clear")
 		})
-		auth.POST("/checkinout", CheckInOutMessages)
-		auth.POST("/clear_messages", DeleteMessages)
 		auth.GET("/misc", MiscPage)
-		auth.POST("/checknumber", checkIsValidNumber)
-		auth.POST("/checkregistration", checkIsRegistered)
-		auth.POST("/removeaccount", RemoveAccount)
 		auth.GET("/logout", Logout)
 	}
 	// Start the server

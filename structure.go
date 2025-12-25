@@ -22,13 +22,9 @@ type OIDCConfig struct {
 }
 
 type Config struct {
-	Username               string     `xml:"username"`
-	Password               string     `xml:"password"`
-	WiiMailDatabaseAddress string     `xml:"wiiMailDatabaseAddress"`
-	WiiMailDatabaseName    string     `xml:"wiiMailDatabaseName"`
-	Address                string     `xml:"address"`
-	AssetsPath			 string     `xml:"assetsPath"`
-	OIDCConfig             OIDCConfig `xml:"oidc"`
+	Address    string     `xml:"address"`
+	AssetsPath string     `xml:"assetsPath"`
+	OIDCConfig OIDCConfig `xml:"oidc"`
 }
 
 type AppAuthConfig struct {

@@ -1,105 +1,137 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"encoding/base64"
 	"fmt"
+	"github.com/wii-tools/arclib"
+	"image/jpeg"
 	"io"
-	"log"
 	"net/http"
 	"net/mail"
 	"os"
-	"strings"
 	"unicode/utf16"
 
 	"github.com/WiiLink24/nwc24"
 	"github.com/gin-gonic/gin"
 )
 
-var (
-	InsertMail           = `INSERT INTO mail (snowflake, data, sender, recipient, is_sent) VALUES ($1, $2, $3, $4, false)`
-	CheckRegistration    = `SELECT EXISTS(SELECT 1 FROM accounts WHERE mlid = $1)`
-	CheckInboundOutbound = `SELECT (SELECT COUNT(*) FROM mail WHERE recipient = $1 AND is_sent = false) AS inbound_count, (SELECT COUNT(*) FROM mail WHERE sender = $1 AND is_sent = false) AS outbound_count`
-	CheckOutbound        = `SELECT COUNT(*) FROM mail WHERE sender = $1 AND is_sent = false`
-	DeleteInbound        = `DELETE FROM mail WHERE recipient = $1 AND is_sent = false`
-	DeleteOutbound       = `DELETE FROM mail WHERE sender = $1 AND is_sent = false`
-	DeleteAccount        = `DELETE FROM accounts WHERE mlid = $1`
-)
-
 func SendMessage(c *gin.Context) {
 	//fetch the message from the form
-	recipient_type := c.PostForm("recipient_type")
 	subject := c.PostForm("subject")
 	message := c.PostForm("message_content")
-	recipient := c.PostForm("recipient")
 	attachment, _ := c.FormFile("attachment")
 	mii, _ := c.FormFile("mii")
+	language := c.PostForm("language")
 
-	conv_message := utf16.Encode([]rune(message))
-	message = nwc24.UTF16ToString(conv_message)
+	message = nwc24.UTF16ToString(utf16.Encode([]rune(message)))
 
-	formatted_recipient := strings.ReplaceAll(recipient, "-", "")
+	from, err := mail.ParseAddress("w9999999900000000@rc24.xyz")
+	if err != nil {
+		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+			"Error": err.Error(),
+		})
+		return
+	}
 
-	err := error(nil)
+	to, err := mail.ParseAddress("allusers@rc24.xyz")
+	if err != nil {
+		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+			"Error": err.Error(),
+		})
+		return
+	}
 
-	sender_address, err := mail.ParseAddress("w9999999900000000@rc24.xyz")
-
-	var recipient_address *mail.Address
-	recipient_address, err = mail.ParseAddress("allusers@rc24.xyz")
-
-	//initialize the message
+	// Initialize the message
 	// Use distinct boundaries for the outer message and the inner
 	outerBoundary := generateBoundary()
 	innerBoundary := generateBoundary()
-	data := nwc24.NewMessage(sender_address, recipient_address)
-	data.SetSubject(subject)
-	data.SetBoundary(innerBoundary)
-	data.SetContentType(nwc24.MultipartMixed)
-	data.SetTag("X-Wii-MB-NoReply", "1")
+
+	msg := nwc24.NewMessage(from, to)
+	msg.SetBoundary(innerBoundary)
+	msg.SetContentType(nwc24.MultipartMixed)
+	msg.SetTag("X-Wii-MB-NoReply", "1")
+	msg.SetTag("X-Wii-MB-OptOut", "1")
+	msg.SetTag("X-Wii-AltName", nwc24.Base64Encode(UTF16ToBytes(utf16.Encode([]rune(subject)))))
 
 	// Attach the Mii if it exists
 	if mii != nil {
-		// get the Mii data into base64 utf-16be
-		mii_data := base64.StdEncoding.EncodeToString(encodeToUTF16BE(mii.Filename))
-		data.SetTag("X-WiiFace", mii_data)
+		// First open the Mii
+		miiFp, err := mii.Open()
+		if err != nil {
+			c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+				"Error": err.Error(),
+			})
+			return
+		}
+
+		defer miiFp.Close()
+		miiBytes, err := io.ReadAll(miiFp)
+		if err != nil {
+			c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+				"Error": err.Error(),
+			})
+			return
+		}
+
+		// Steps must be taken to make sure this doesn't fail.
+		// First, strip the CRC16 checksum then encode in Base64.
+		miiB64 := base64.StdEncoding.EncodeToString(miiBytes[:74])
+
+		// Next, we need to format the string correctly.
+		// First line (the header) must be 67 characters long including the key `X-WiiFace: `.
+		// It is followed by a carriage return, a space, then the remaining base64 characters.
+		keyLen := len("X-WiiFace: ")
+		miiB64 = miiB64[:67-keyLen] + "\r\n " + miiB64[67-keyLen:]
+
+		msg.SetTag("X-WiiFace", miiB64)
+		msg.SetTag("X-Wii-AppId", "2-48414541-0001")
+		msg.SetTag("X-Wii-Cmd", "00044001")
 	} else {
 		fmt.Println("No Mii uploaded, skipping...")
 	}
 
-	//create the text multipart
-	text_multipart := nwc24.NewMultipart()
+	// Next, create the text section.
+	textPart := nwc24.NewMultipart()
+	textPart.SetText(message, nwc24.UTF16BE)
 
-	//now we append the data
-	text_multipart.SetText(message, nwc24.UTF16BE)
-	text_multipart.SetContentType(nwc24.PlainText)
-
-	//add the multipart to the message
-	data.AddMultipart(text_multipart)
+	// Add the text part to the message
+	msg.AddMultipart(textPart)
 
 	// Attach the attachment image if it exists
-	if err != nil {
-		fmt.Println("Error retrieving the file:", err)
-		return
-	}
-
 	if attachment != nil {
 		attachmentMultipart := nwc24.NewMultipart()
 		attachmentMultipart.SetContentType(nwc24.Jpeg)
 
 		file, err := attachment.Open()
 		if err != nil {
-			fmt.Println("Error opening the file:", err)
+			c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+				"Error": err.Error(),
+			})
 			return
 		}
-		defer file.Close()
 
-		attachmentBytes, err := io.ReadAll(file)
+		// We have to convert to baseline JPEG.
+		decodedImage, err := resize(file)
 		if err != nil {
-			fmt.Println("Error reading the file:", err)
+			c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+				"Error": err.Error(),
+			})
 			return
 		}
 
-		attachmentMultipart.AddFile("attachment", attachmentBytes, nwc24.Jpeg)
-		data.AddMultipart(attachmentMultipart)
+		var jpegEncoded bytes.Buffer
+		err = jpeg.Encode(bufio.NewWriter(&jpegEncoded), decodedImage, nil)
+		if err != nil {
+			c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+				"Error": err.Error(),
+			})
+			return
+		}
+
+		attachmentMultipart.AddFile("image.jpg", jpegEncoded.Bytes(), nwc24.Jpeg)
+		msg.AddMultipart(attachmentMultipart)
 	} else {
 		fmt.Println("No attachment uploaded, skipping...")
 	}
@@ -109,281 +141,94 @@ func SendMessage(c *gin.Context) {
 	thumbnailFile, _ := c.FormFile("thumbnail")
 
 	if letterFile != nil || thumbnailFile != nil {
-		uploadToGenerator(c, "letter", "letter.png")
-		uploadToGenerator(c, "thumbnail", "thumbnail.png")
-
-		audioFile, _, _ := c.Request.FormFile("audio")
-		if audioFile != nil {
-			uploadToGenerator(c, "audio", "sound.wav")
+		letterFp, err := letterFile.Open()
+		if err != nil {
+			c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+				"Error": err.Error(),
+			})
+			return
 		}
-		letterheadContent, _ := generateLetterhead()
 
-		log.Printf("Letterhead content: %s", letterheadContent)
+		// Make the letter images
+		defer letterFp.Close()
+		letterArc, err := makeLetterImages(letterFp)
+		if err != nil {
+			c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+				"Error": err.Error(),
+			})
+			return
+		}
 
-		// Include the letterhead in the message
+		// Now the thumbnail image
+		thumbnailFp, err := thumbnailFile.Open()
+		if err != nil {
+			c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+				"Error": err.Error(),
+			})
+			return
+		}
+
+		defer thumbnailFp.Close()
+		thumbnailArc, err := makeThumbnail(thumbnailFp)
+		if err != nil {
+			c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+				"Error": err.Error(),
+			})
+			return
+		}
+
+		// Finally we have to combine the two into one archive.
+		letterHeadArc, err := arclib.Load(letterHeadArchiveBase)
+		if err != nil {
+			c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+				"Error": err.Error(),
+			})
+			return
+		}
+
+		letterHeadArc.RootRecord.WriteFile("letter_LZ.bin", letterArc)
+		letterHeadArc.RootRecord.WriteFile("thumbnail_LZ.bin", thumbnailArc)
+
+		letterHeadBytes, err := letterHeadArc.Save()
+		if err != nil {
+			c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+				"Error": err.Error(),
+			})
+			return
+		}
+
 		letterheadMultipart := nwc24.NewMultipart()
-		letterheadMultipart.AddFile("letterhead", []byte(letterheadContent), nwc24.WiiMessageBoard)
-		data.AddMultipart(letterheadMultipart)
+		letterheadMultipart.AddFile("letterhead.arc", letterHeadBytes, nwc24.WiiMessageBoard)
+		msg.AddMultipart(letterheadMultipart)
 
+		// TODO: Audio support
 	} else {
 		fmt.Println("No letter or thumbnail uploaded, skipping...")
 	}
 
-	var content string
-	content, err = nwc24.CreateMessageToSend(outerBoundary, data)
-
+	content, err := nwc24.CreateMessageToSend(outerBoundary, msg)
 	if err != nil {
-		fmt.Println(err)
-	} else {
-		fmt.Println(content)
-
-		// Write into txt file
-		file, err := os.Create("generated_message.txt")
-		if err != nil {
-			fmt.Println("Error creating file:", err)
-		} else {
-			defer file.Close()
-			_, err = file.WriteString(content)
-			if err != nil {
-				fmt.Println("Error writing to file:", err)
-			}
-		}
+		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+			"Error": err.Error(),
+		})
+		return
 	}
 
-	if recipient_type == "all" {
-		//insert null value for recipient
-		_, err = encryptMessage(content)
-		if err != nil {
-			fmt.Println(err)
-		}
-	} else {
-		_, err = wiiMailPool.Exec(ctx, InsertMail, flakeNode.Generate(), content, "9999999900000000", formatted_recipient)
-	}
+	// Make directory and file
+	err = os.MkdirAll(fmt.Sprintf("%s/%s", config.AssetsPath, language), 0775)
 	if err != nil {
-		fmt.Println(err)
+		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+			"Error": err.Error(),
+		})
+	}
+
+	err = os.WriteFile(fmt.Sprintf("%s/%s/announcement", config.AssetsPath, language), []byte(content), 0644)
+	if err != nil {
+		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+			"Error": err.Error(),
+		})
+		return
 	}
 
 	c.Redirect(http.StatusTemporaryRedirect, "/send#success")
-}
-
-func CheckInOutMessages(c *gin.Context) {
-	wiiNumber := c.PostForm("wii_number")
-
-	formatted_number := strings.ReplaceAll(wiiNumber, "-", "")
-
-	if !validateFriendCode(formatted_number) {
-		c.HTML(http.StatusInternalServerError, "inbound.html", gin.H{
-			"Error": "This Wii Number is invalid (most likely a default Dolphin number).",
-		})
-	}
-
-	var exists bool
-	row, err := wiiMailPool.Query(ctx, CheckRegistration, formatted_number)
-	if err != nil {
-		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
-			"Error": "Couldn't query the database.",
-		})
-	}
-
-	for row.Next() {
-		err = row.Scan(&exists)
-		if err != nil {
-			c.HTML(http.StatusInternalServerError, "error.html", gin.H{
-				"Error": "Couldn't scan the rows.",
-			})
-		}
-	}
-
-	if !exists {
-		c.HTML(http.StatusInternalServerError, "send_message.html", gin.H{
-			"Error": "This Wii Number is not registered in the database.",
-		})
-	}
-
-	var inbound, outbound int
-	rows, err := wiiMailPool.Query(ctx, CheckInboundOutbound, formatted_number)
-	if err != nil {
-		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
-			"Error": "Couldn't query the database.",
-		})
-	}
-
-	for rows.Next() {
-		err = rows.Scan(&inbound, &outbound)
-		if err != nil {
-			c.HTML(http.StatusInternalServerError, "error.html", gin.H{
-				"Error": "Couldn't scan the rows.",
-			})
-		}
-	}
-
-	c.HTML(http.StatusOK, "inbound.html", gin.H{
-		"Title":    "Check Messages | WiiLink Mail",
-		"Inbound":  inbound,
-		"Outbound": outbound,
-	})
-
-}
-
-func DeleteMessages(c *gin.Context) {
-	action_type := c.PostForm("type")
-	wiiNumber := c.PostForm("wii_number")
-
-	formatted_number := strings.ReplaceAll(wiiNumber, "-", "")
-
-	if !validateFriendCode(formatted_number) {
-		c.HTML(http.StatusInternalServerError, "inbound.html", gin.H{
-			"Error": "This Wii Number is invalid (most likely a default Dolphin number).",
-		})
-	}
-
-	var exists bool
-	row, err := wiiMailPool.Query(ctx, CheckRegistration, formatted_number)
-	if err != nil {
-		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
-			"Error": "Couldn't query the database.",
-		})
-	}
-
-	for row.Next() {
-		err = row.Scan(&exists)
-		if err != nil {
-			c.HTML(http.StatusInternalServerError, "error.html", gin.H{
-				"Error": "Couldn't scan the rows.",
-			})
-		}
-	}
-
-	if !exists {
-		c.HTML(http.StatusInternalServerError, "send_message.html", gin.H{
-			"Error": "This Wii Number is not registered in the database.",
-		})
-	}
-
-	if action_type == "inbound" {
-		_, err = wiiMailPool.Exec(ctx, DeleteInbound, formatted_number)
-		if err != nil {
-			fmt.Println(err)
-		}
-	} else if action_type == "outbound" {
-		_, err = wiiMailPool.Exec(ctx, DeleteOutbound, formatted_number)
-		if err != nil {
-			fmt.Println(err)
-		}
-	}
-
-	c.Redirect(http.StatusTemporaryRedirect, "/clear#success")
-
-}
-
-func checkIsValidNumber(c *gin.Context) {
-	wiiNumber := c.PostForm("wii_number")
-
-	formatted_number := strings.ReplaceAll(wiiNumber, "-", "")
-
-	if !validateFriendCode(formatted_number) {
-		c.HTML(http.StatusOK, "misc.html", gin.H{
-			"Title":    "Miscellaneous | WiiLink Mail",
-			"TestName": "Wii Number Validation Result",
-			"Result":   "This Wii Number is invalid. It could be either a default Dolphin number, or a mistyped number.",
-		})
-	} else {
-		c.HTML(http.StatusOK, "misc.html", gin.H{
-			"Title":    "Miscellaneous | WiiLink Mail",
-			"TestName": "Wii Number Validation Result",
-			"Result":   "This Wii Number is valid.",
-		})
-	}
-}
-
-func checkIsRegistered(c *gin.Context) {
-	wiiNumber := c.PostForm("wii_number")
-
-	formatted_number := strings.ReplaceAll(wiiNumber, "-", "")
-
-	var exists bool
-	row, err := wiiMailPool.Query(ctx, CheckRegistration, formatted_number)
-	if err != nil {
-		c.HTML(http.StatusOK, "misc.html", gin.H{
-			"Title": "Miscellaneous | WiiLink Mail",
-			"Error": "Couldn't query the database.",
-		})
-	}
-
-	for row.Next() {
-		err = row.Scan(&exists)
-		if err != nil {
-			c.HTML(http.StatusOK, "misc.html", gin.H{
-				"Title": "Miscellaneous | WiiLink Mail",
-				"Error": "Couldn't scan the rows.",
-			})
-		}
-	}
-
-	if exists {
-		c.HTML(http.StatusOK, "misc.html", gin.H{
-			"Title":    "Miscellaneous | WiiLink Mail",
-			"TestName": "Wii Number Registration Check",
-			"Result":   "This Wii Number is registered in the database.",
-		})
-	} else {
-		c.HTML(http.StatusOK, "misc.html", gin.H{
-			"Title":    "Miscellaneous | WiiLink Mail",
-			"TestName": "Wii Number Registration Check",
-			"Result":   "This Wii Number is not registered.",
-		})
-	}
-}
-
-func RemoveAccount(c *gin.Context) {
-	wiiNumber := c.PostForm("wii_number")
-
-	formatted_number := strings.ReplaceAll(wiiNumber, "-", "")
-
-	if !validateFriendCode(formatted_number) {
-		c.HTML(http.StatusOK, "misc.html", gin.H{
-			"Title": "Miscellaneous | WiiLink Mail",
-			"Error": "This Wii Number is invalid (most likely a default Dolphin number).",
-		})
-	}
-
-	var exists bool
-	row, err := wiiMailPool.Query(ctx, CheckRegistration, formatted_number)
-	if err != nil {
-		c.HTML(http.StatusOK, "misc.html", gin.H{
-			"Title": "Miscellaneous | WiiLink Mail",
-			"Error": "Couldn't query the database.",
-		})
-	}
-
-	for row.Next() {
-		err = row.Scan(&exists)
-		if err != nil {
-			c.HTML(http.StatusOK, "misc.html", gin.H{
-				"Title": "Miscellaneous | WiiLink Mail",
-				"Error": "Couldn't scan the rows.",
-			})
-		}
-	}
-
-	if !exists {
-		c.HTML(http.StatusOK, "misc.html", gin.H{
-			"Title": "Miscellaneous | WiiLink Mail",
-			"Error": "This Wii Number is not registered in the database.",
-		})
-	} else {
-		_, err = wiiMailPool.Exec(ctx, DeleteAccount, formatted_number)
-		if err != nil {
-			c.HTML(http.StatusInternalServerError, "error.html", gin.H{
-				"Title": "Error | WiiLink Mail",
-				"Error": "Couldn't delete the account.",
-			})
-		}
-
-		c.HTML(http.StatusOK, "misc.html", gin.H{
-			"Title":    "Miscellaneous | WiiLink Mail",
-			"TestName": "Account Removal",
-			"Result":   "The account has been removed.",
-		})
-	}
 }
