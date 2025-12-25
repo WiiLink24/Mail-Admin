@@ -25,6 +25,16 @@
   --tw-content: '';
 }
 
+@font-face {
+  font-family: Wii;
+  src: url('/assets/font/Wii.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: Rodin;
+  src: url('/assets/font/Rodin.otf') format('opentype');
+}
+
 /*
 1. Use a consistent sensible line-height in all browsers.
 2. Prevent adjustments of font size after orientation changes in iOS.
