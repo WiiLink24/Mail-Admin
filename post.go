@@ -5,13 +5,14 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
-	"github.com/wii-tools/arclib"
 	"image/jpeg"
 	"io"
 	"net/http"
 	"net/mail"
 	"os"
 	"unicode/utf16"
+
+	"github.com/wii-tools/arclib"
 
 	"github.com/WiiLink24/nwc24"
 	"github.com/gin-gonic/gin"
@@ -189,6 +190,49 @@ func SendMessage(c *gin.Context) {
 		letterHeadArc.RootRecord.WriteFile("letter_LZ.bin", letterArc)
 		letterHeadArc.RootRecord.WriteFile("thumbnail_LZ.bin", thumbnailArc)
 
+		audioFile, _ := c.FormFile("audio")
+		if audioFile != nil {
+			audioFp, err := audioFile.Open()
+			if err != nil {
+				c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+					"Error": err.Error(),
+				})
+				return
+			}
+
+			defer audioFp.Close()
+			audioBytes, err := io.ReadAll(audioFp)
+			if err != nil {
+				c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+					"Error": err.Error(),
+				})
+				return
+			}
+
+			bnsObj, err := NewBNSFromWAVBytes(audioBytes)
+			if err != nil {
+				c.HTML(http.StatusInternalServerError, "error.html", gin.H{"Error": err.Error()})
+				return
+			}
+
+			bnsObj.SetStereoToMono(true)
+
+			if err := bnsObj.Convert(); err != nil {
+				c.HTML(http.StatusInternalServerError, "error.html", gin.H{"Error": err.Error()})
+				return
+			}
+
+			bnBytes, err := bnsObj.ToBytes()
+			if err != nil {
+				c.HTML(http.StatusInternalServerError, "error.html", gin.H{"Error": err.Error()})
+				return
+			}
+			
+			letterHeadArc.RootRecord.WriteFile("sound.bns", bnBytes)
+		} else {
+			fmt.Println("Audio option selected but no audio uploaded, skipping...")
+		}
+
 		letterHeadBytes, err := letterHeadArc.Save()
 		if err != nil {
 			c.HTML(http.StatusInternalServerError, "error.html", gin.H{
@@ -201,7 +245,8 @@ func SendMessage(c *gin.Context) {
 		letterheadMultipart.AddFile("letterhead.arc", letterHeadBytes, nwc24.WiiMessageBoard)
 		msg.AddMultipart(letterheadMultipart)
 
-		// TODO: Audio support
+		
+
 	} else {
 		fmt.Println("No letter or thumbnail uploaded, skipping...")
 	}
