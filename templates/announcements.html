@@ -1,0 +1,65 @@
+{{template "base.html"}}
+{{if .Error}}
+<p class="fadeout right-5 top-5 px-5 py-3 bg-red-500 text-white rounded-lg z-10 absolute"><i
+        class="fa-solid fa-circle-exclamation"></i> {{.Error}}</p>
+{{end}}
+
+<div class="max-w-[800px] mt-20 sm:mt-0 flex flex-col items-start justify-center gap-10 w-full">
+    <div class="pl-5 pr-5 sm:pl-0 sm:pr-0 w-full">
+        <h1 class="mb-4 text-3xl text-white">Announcements</h1>
+        <p class="mb-8 text-gray-300">Below you will find the current latest announcement for our users in each supported language.</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {{range .Anns}}
+            {{ if .AltName }}
+            <div class="p-4 rounded-xl bg-gray-800/60 border border-gray-700">
+                <div
+                    class="p-2 w-full text-center relative flex items-center justify-center text-white font-bold">
+                    {{.ID}}</div>
+                <hr class="my-4 border-gray-700" />
+                <div class="mt-4 font-bold">
+                    <div class="text-lg text-white truncate">{{.AltName}}</div>
+                </div>
+                <div class="mt-2 text-gray-300">
+                    {{.Message}}
+                </div>
+                <hr class="my-4 border-gray-700" />
+                    <button data-code="{{.Code}}"
+                        class="w-full stop-broadcast p-2 bg-red-600 hover:bg-red-500 rounded-xl text-white text-sm">Stop
+                        broadcasting</button>
+            </div>
+            {{ end }}
+            {{end}}
+            {{ if not .HasActive }}
+            <div class="p-4 rounded-xl bg-gray-800/60 border border-gray-700 col-span-1 md:col-span-2">
+                <div
+                    class="text-white">
+                    No active announcements, go to <a href="/send" class="underline text-blue-400">Send Message</a> to send one.</div>
+            </div>
+            {{ end }}
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.stop-broadcast').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                if (!confirm('Stop broadcasting this announcement?')) return;
+                const code = btn.getAttribute('data-code');
+                fetch('/announcements/stop', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'code=' + encodeURIComponent(code)
+                }).then(r => r.json()).then(j => {
+                    if (j && j.ok) {
+                        window.location.reload();
+                    } else {
+                        alert('Failed to stop: ' + (j && j.message ? j.message : 'unknown'));
+                    }
+                }).catch(err => alert('Request failed: ' + err));
+            });
+        });
+    });
+</script>
+
+{{template "footer.tmpl"}}

@@ -63,14 +63,20 @@ func main() {
 	auth.Use(middleware.AuthenticationMiddleware())
 	{
 		auth.GET("/send", CreateMessagePage)
+		auth.GET("/send_message_multilang", CreateMessageMultiLangPage)
 		auth.POST("/send", func(c *gin.Context) {
 			c.Redirect(http.StatusMovedPermanently, "/send")
 		})
-		auth.POST("/send_message", SendMessage)
+		auth.POST("/send_message", func(c *gin.Context) {
+			SendMessage(c, true)
+		})
+		auth.POST("/send_message_multilang", SendMessageMultiLang)
 		auth.GET("/clear", ClearMessagesPage)
 		auth.POST("/clear", func(c *gin.Context) {
 			c.Redirect(http.StatusMovedPermanently, "/clear")
 		})
+		auth.GET("/announcements", AnnouncementsPage)
+		auth.POST("/announcements/stop", StopAnnouncement)
 		auth.GET("/misc", MiscPage)
 		auth.GET("/logout", Logout)
 	}

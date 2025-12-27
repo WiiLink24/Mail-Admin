@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"image/jpeg"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"net/mail"
 	"os"
@@ -18,7 +19,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SendMessage(c *gin.Context) {
+func SendMessage(c *gin.Context, redirect bool) {
 	//fetch the message from the form
 	subject := c.PostForm("subject")
 	message := c.PostForm("message_content")
@@ -142,6 +143,11 @@ func SendMessage(c *gin.Context) {
 	thumbnailFile, _ := c.FormFile("thumbnail")
 
 	if letterFile != nil || thumbnailFile != nil {
+		if letterFile == nil || thumbnailFile == nil {
+			c.HTML(http.StatusBadRequest, "error.html", gin.H{"Error": "both letter and thumbnail files must be uploaded together"})
+			return
+		}
+
 		letterFp, err := letterFile.Open()
 		if err != nil {
 			c.HTML(http.StatusInternalServerError, "error.html", gin.H{
@@ -227,7 +233,7 @@ func SendMessage(c *gin.Context) {
 				c.HTML(http.StatusInternalServerError, "error.html", gin.H{"Error": err.Error()})
 				return
 			}
-			
+
 			letterHeadArc.RootRecord.WriteFile("sound.bns", bnBytes)
 		} else {
 			fmt.Println("Audio option selected but no audio uploaded, skipping...")
@@ -244,8 +250,6 @@ func SendMessage(c *gin.Context) {
 		letterheadMultipart := nwc24.NewMultipart()
 		letterheadMultipart.AddFile("letterhead.arc", letterHeadBytes, nwc24.WiiMessageBoard)
 		msg.AddMultipart(letterheadMultipart)
-
-		
 
 	} else {
 		fmt.Println("No letter or thumbnail uploaded, skipping...")
@@ -275,5 +279,90 @@ func SendMessage(c *gin.Context) {
 		return
 	}
 
-	c.Redirect(http.StatusTemporaryRedirect, "/send#success")
+	if redirect {
+		c.Redirect(http.StatusSeeOther, "/send#success")
+	}
+}
+
+// Wrapper for sending multi-language messages
+func SendMessageMultiLang(c *gin.Context) {
+	languages := []string{"JP", "EN", "FR", "DE", "ES", "IT", "NL"}
+
+	fileKeys := []string{"mii", "attachment", "letter", "thumbnail", "audio"}
+
+	for _, lang := range languages {
+		if c.PostForm("subject_"+lang) == "" && c.PostForm("message_content_"+lang) == "" {
+			continue
+		}
+
+		fmt.Println("Now sending " + lang)
+
+		lang_id := ""
+		switch lang {
+		case "JP":
+			lang_id = "0"
+		case "EN":
+			lang_id = "1"
+		case "DE":
+			lang_id = "2"
+		case "FR":
+			lang_id = "3"
+		case "ES":
+			lang_id = "4"
+		case "IT":
+			lang_id = "5"
+		case "NL":
+			lang_id = "6"
+		default:
+			lang_id = "1" // Default to English
+		}
+
+		subject := c.PostForm("subject_" + lang)
+		message := c.PostForm("message_content_" + lang)
+
+		// Backup original post form values so we can restore them later
+		origSubject := c.PostForm("subject")
+		origMessage := c.PostForm("message_content")
+		origLanguage := c.PostForm("language")
+
+		c.Request.PostForm.Set("subject", subject)
+		c.Request.PostForm.Set("message_content", message)
+		c.Request.PostForm.Set("language", lang_id)
+
+		_ = c.Request.ParseMultipartForm(32 << 20)
+		mf := c.Request.MultipartForm
+
+		var origFiles map[string][]*multipart.FileHeader
+		if mf != nil {
+			origFiles = make(map[string][]*multipart.FileHeader)
+			for _, k := range fileKeys {
+				origFiles[k] = mf.File[k]
+				langKey := k + "_" + lang
+				if files, ok := mf.File[langKey]; ok {
+					mf.File[k] = files
+				} else {
+					delete(mf.File, k)
+				}
+			}
+		}
+
+		// Call the shared handler
+		SendMessage(c, false)
+
+		// restore original values
+		if mf != nil {
+			for _, k := range fileKeys {
+				if origFiles[k] != nil {
+					mf.File[k] = origFiles[k]
+				} else {
+					delete(mf.File, k)
+				}
+			}
+		}
+		c.Request.PostForm.Set("subject", origSubject)
+		c.Request.PostForm.Set("message_content", origMessage)
+		c.Request.PostForm.Set("language", origLanguage)
+	}
+
+	c.Redirect(http.StatusSeeOther, "/send_message_multilang#success")
 }

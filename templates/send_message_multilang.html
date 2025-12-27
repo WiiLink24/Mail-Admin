@@ -1,0 +1,285 @@
+{{template "base.html"}}
+{{if .Error}}
+<p class="fadeout right-5 top-5 px-5 py-3 bg-red-500 text-white rounded-lg z-10 absolute"><i
+        class="fa-solid fa-circle-exclamation"></i> {{.Error}}</p>
+{{end}}
+<p id="success" class="fadeout right-5 top-5 px-5 py-3 bg-green-500 text-white rounded-lg z-10 absolute hidden"><i
+        class="fa-solid fa-circle-check"></i> The mail was generated and sent successfully.</p>
+
+<div class="mt-20 sm:mt-0 flex flex-col items-start justify-center gap-10">
+    <div class="hidden sm:flex items-center justify-center p-5 w-full rounded-lg animate-bg"
+        style="background-image: url('assets/img/bg.png'); background-size: 8px 8px; background-repeat: repeat;">
+        <div class="w-[550px] flex flex-col gap-5 overflow-hidden relative">
+            <p id="mailSubject"
+                class="w-[calc(100%-80px)] top-7 left-1/2 -translate-x-1/2 text-center text-xl z-10 absolute truncate overflow-ellipsis whitespace-nowrap text-white font-[Rodin] font-normal">
+            </p>
+            <p id="mailContent"
+                class="w-full left-1/2 -translate-x-1/2 top-44 text-black text-xl font-serif z-10 absolute break-words leading-10 overflow-hidden"
+                style="display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; word-break: break-all; white-space: pre-wrap; max-width: 27ch; font-family: 'Wii', monospace; font-weight: 100;">
+            </p>
+            <img src="assets/img/placeholder_letterhead.png" id="letterPreview" alt="Letter Preview"
+                class="w-[calc(100%)] h-auto z-0" style="aspect-ratio: 1.36 / 1;">
+            <img src="" id="embedPreview" alt="Embed Preview"
+                class="right-10 top-16 bg-white pl-1 pr-1 pt-1 pb-3 w-32 hover:scale-110 shadow-md shadow-black/20 h-auto hidden z-10 absolute transition-all">
+            <img src="" id="miiPreview" alt="Mii Preview" class="top-[4.3rem] left-5 h-auto z-10 hidden absolute"
+                width="100px">
+        </div>
+    </div>
+
+    <div class="pl-5 pr-5 sm:pl-0 sm:pr-0">
+        <form method="POST" enctype="multipart/form-data" action="/send_message_multilang">
+            <div class="mb-4">
+                <div class="w-full flex gap-2 mb-8" id="lang-tabs"></div>
+
+                <div id="lang-panels"></div>
+
+            </div>
+
+            <br>
+            <button type="submit" id="sendAllBtn"
+                class="w-full p-3 bg-blue-500 hover:bg-blue-600 rounded-full transition-all flex items-center justify-center text-white">
+                <i class="fas fa-paper-plane mr-2"></i> <b>Send All</b>
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    const LANGS = ['JP', 'EN', 'FR', 'DE', 'ES', 'IT', 'NL'];
+
+    function makeLangTabs() {
+        const tabs = document.getElementById('lang-tabs');
+        const panels = document.getElementById('lang-panels');
+
+        LANGS.forEach((lang, idx) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = (idx === 0) ? 'px-3 py-1 rounded-xl bg-blue-500 text-white' : 'px-3 py-1 rounded-xl bg-gray-100 text-black';
+            btn.innerText = lang;
+            btn.dataset.lang = lang;
+            btn.onclick = () => switchLang(lang);
+            tabs.appendChild(btn);
+
+            const panel = document.createElement('div');
+            panel.id = 'panel_' + lang;
+            panel.style.display = idx === 0 ? 'block' : 'none';
+            panel.innerHTML = `
+            <div class="flex flex-col md:flex-row gap-3 mb-4">
+                <div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-white mb-2 relative">Subject (${lang})</span>
+                        <button type="button" class="text-sm text-white bg-transparent border border-white/20 px-2 py-1 rounded" onclick="clearLang('${lang}')">Clear</button>
+                    </div>
+                    <div>
+                        <input name="subject_${lang}" type="text" placeholder="Eg: New contests added for CMOC" id="subject_${lang}"
+                            class="mt-2 w-full border rounded-t-xl rounded-b-md p-2 text-black"
+                            oninput="updateText(event, 'mailSubject'); updateSendList()" />
+                        <textarea name="message_content_${lang}" cols="30" rows="4"
+                            class="mt-1 w-full h-[153px] border rounded-t-md rounded-b-xl p-2 text-black"
+                            placeholder="Eg: There have been new contests posted for the Check Mii Out Channel! Go check them out and vote now!"
+                            oninput="updateText(event, 'mailContent'); updateSendList()"></textarea>
+                    </div>
+                </div>
+                <div class="input xl:min-w-[400px]">
+                    <span class="mb-2 hover:cursor-help flex flex-row items-center justify-between gap-5 text-white"
+                        title="Custom parameters for mail.">Customization <span class="opacity-30">(jpeg &
+                            png)</span></span>
+                    <div class="mt-1 flex flex-col gap-1">
+                                                    <label
+                                class="bg-white cursor-pointer p-4 rounded-t-xl rounded-b-sm transition-all hover:bg-gray-200 text-black flex items-center justify-between gap-3"><i
+                                    class="fa-solid fa-circle-plus"></i>Add image
+                                <input type="file" name="attachment_${lang}" accept="image/jpeg" class="hidden"
+                                    onchange="previewImage(event, 'embedPreview', 'thumbnail_${lang}')" />
+                                <img id="thumbnail_${lang}" class="w-12 scale-150 hidden rounded-sm shadow-md rotate-3" />
+                            </label>
+                        <div class="flex flex-row gap-1">
+                        <label
+                            class="bg-white cursor-pointer w-full p-4 rounded-sm rounded-bl-xl transition-all hover:bg-gray-200 text-black flex items-center justify-between gap-3"
+                            title="Add letter"><i class="fa-solid fa-envelope-open-text"></i>Add letter
+                            <input type="file" id="letter_${lang}" name="letter_${lang}" accept="image/png" class="hidden"
+                                onchange="previewImage(event, 'letterPreview', 'letter_thumb_${lang}')" />
+                            <img id="letter_thumb_${lang}" class="w-8 rotate-3 h-auto hidden mt-2" />
+                        </label>
+
+                        <label
+                            class="bg-white cursor-pointer w-full p-4 rounded-l-sm rounded-br-xl transition-all hover:bg-gray-200 text-black flex items-center justify-between gap-3"
+                            title="Add thumbnail"><i class="fa-solid fa-envelope"></i>Add thumbnail
+                            <input type="file" id="thumbnail_${lang}" name="thumbnail_${lang}" accept="image/png" class="hidden"
+                                onchange="previewImage(event, 'thumbnailPreview', 'thumbnail_thumb_${lang}')" />
+                            <img id="thumbnail_thumb_${lang}" class="w-8 rotate-3 scale-150 hidden mt-2" />
+                        </label>
+                        </div>
+                        <hr class="mt-3 mb-3 opacity-30">
+                        <div class="flex flex-row gap-1">
+                        <label
+                            class="bg-white cursor-pointer w-full p-4 rounded-l-xl rounded-r-sm transition-all hover:bg-gray-200 text-black flex items-center justify-between gap-3">
+                            <i id="miiIcon_${lang}" class="fa-solid fa-user"></i>Add Mii
+                            <input type="file" id="mii_${lang}" name="mii_${lang}" class="hidden" accept=".miigx" onchange="hasMiiLang(event,'${lang}')" />
+                        </label>
+
+                        <label
+                            class="bg-white cursor-pointer w-full p-4 rounded-l-sm rounded-r-xl transition-all hover:bg-gray-200 text-black flex items-center justify-between gap-3">
+                            <i id="audioIcon_${lang}" class="fa-solid fa-microphone"></i>Add audio
+                            <input type="file" id="audio_${lang}" name="audio_${lang}" class="hidden" accept=".wav"
+                                onchange="hasAudioLang(event,'${lang}')" />
+                        </label>
+                        </div>
+
+                        <a class="mt-2 opacity-60 text-right hover:underline block text-white"
+                            href="https://products.aspose.app/audio/voice-recorder/wav" target="_blank"
+                            rel="noopener noreferrer">Record now</a>
+                    </div>
+                </div>
+            </div>
+        `;
+            panels.appendChild(panel);
+        });
+    }
+
+    function switchLang(lang) {
+        LANGS.forEach(l => {
+            const panel = document.getElementById('panel_' + l);
+            if (panel) panel.style.display = (l === lang) ? 'block' : 'none';
+        });
+
+        updatePreviewFromPanel(lang);
+
+        const letterThumb = document.getElementById('letter_thumb_' + lang);
+        const letterPreview = document.getElementById('letterPreview');
+        if (letterThumb && letterThumb.src && letterThumb.classList && !letterThumb.classList.contains('hidden')) {
+            letterPreview.src = letterThumb.src;
+            letterPreview.classList.remove('hidden');
+        } else {
+            letterPreview.src = 'assets/img/placeholder_letterhead.png';
+        }
+
+        const attachThumb = document.getElementById('thumbnail_' + lang);
+        const embed = document.getElementById('embedPreview');
+        if (attachThumb && attachThumb.src && attachThumb.classList && !attachThumb.classList.contains('hidden')) {
+            embed.src = attachThumb.src;
+            embed.classList.remove('hidden');
+        } else {
+            embed.src = '';
+            embed.classList.add('hidden');
+        }
+
+        updateSendList();
+    }
+
+    function updatePreviewFromPanel(lang) {
+        const subj = document.getElementsByName('subject_' + lang)[0]?.value || '';
+        const msg = document.getElementsByName('message_content_' + lang)[0]?.value || '';
+        document.getElementById('mailSubject').innerText = subj;
+        document.getElementById('mailContent').innerText = msg;
+    }
+
+    function previewImage(event, id, id2) {
+        const reader = new FileReader();
+        reader.onload = function () {
+            const output = document.getElementById(id);
+            if (output) {
+                output.src = reader.result;
+                output.classList.remove("hidden");
+            }
+            if (id2) {
+                const output2 = document.getElementById(id2);
+                if (output2) {
+                    output2.src = reader.result;
+                    output2.classList.remove("hidden");
+                }
+            }
+            updateSendList();
+        };
+        reader.readAsDataURL(event.target.files[0]);
+    }
+
+    function updateText(event, destId) {
+        const dest = document.getElementById(destId);
+        if (dest) {
+            dest.innerText = event.target.value;
+        }
+    }
+
+    function previewLangImage(event, destId, thumbId) { return previewImage(event, destId, thumbId); }
+
+    function hasAudioLang(ev, lang) { document.getElementById('audioIcon_' + lang)?.classList?.add('text-green-500'); updateSendList(); }
+    function hasMiiLang(ev, lang) { document.getElementById('miiIcon_' + lang)?.classList?.add('text-green-500'); updateSendList(); }
+
+    if (window.location.hash === '#success') {
+        document.getElementById('success').classList.remove('hidden');
+    }
+
+    makeLangTabs();
+    switchLang('EN');
+    updateSendList();
+
+    function clearLang(lang) {
+        const panel = document.getElementById('panel_' + lang);
+        if (!panel) return;
+
+        const subj = panel.querySelector(`[name="subject_${lang}"]`);
+        if (subj) subj.value = '';
+        const msg = panel.querySelector(`[name="message_content_${lang}"]`);
+        if (msg) msg.value = '';
+
+        ['attachment', 'letter', 'thumbnail', 'mii', 'audio'].forEach(k => {
+            const fileInput = panel.querySelector(`[name="${k}_${lang}"]`) || panel.querySelector(`#${k}_${lang}`);
+            if (fileInput) {
+                try { fileInput.value = ''; } catch (e) { /* ignore */ }
+            }
+            const thumbId = (k === 'attachment') ? `thumbnail_${lang}` : (k === 'letter' ? `letter_thumb_${lang}` : (k === 'thumbnail' ? `thumbnail_thumb_${lang}` : (k === 'mii' ? 'miiPreview' : '')));
+            if (thumbId) {
+                const t = document.getElementById(thumbId);
+                if (t) { t.src = ''; t.classList.add('hidden'); }
+            }
+        });
+
+        const audioIcon = document.getElementById('audioIcon_' + lang);
+        if (audioIcon) audioIcon.classList.remove('text-green-500');
+        const miiIcon = document.getElementById('miiIcon_' + lang);
+        if (miiIcon) miiIcon.classList.remove('text-green-500');
+
+        const activePanel = document.querySelector('#lang-panels > div[style*="display: block"]');
+        if (activePanel && activePanel.id === 'panel_' + lang) {
+            document.getElementById('mailSubject').innerText = '';
+            document.getElementById('mailContent').innerText = '';
+            const embed = document.getElementById('embedPreview');
+            embed.src = '';
+            embed.classList.add('hidden');
+            const letterPreview = document.getElementById('letterPreview');
+            letterPreview.src = 'assets/img/placeholder_letterhead.png';
+        }
+
+        updateSendList();
+    }
+
+    function updateSendList() {
+        const btn = document.getElementById('sendAllBtn');
+        const toSend = [];
+
+        LANGS.forEach(lang => {
+            const subj = document.getElementsByName('subject_' + lang)[0]?.value || '';
+            const msg = document.getElementsByName('message_content_' + lang)[0]?.value || '';
+            const hasFile = (document.querySelector(`[name="attachment_${lang}"]`)?.files?.length > 0) || (document.getElementById('letter_' + lang)?.files?.length > 0) || (document.getElementById('thumbnail_' + lang)?.files?.length > 0) || (document.getElementById('mii_' + lang)?.files?.length > 0) || (document.getElementById('audio_' + lang)?.files?.length > 0);
+
+            const hasData = (subj.trim() !== '' || msg.trim() !== '' || hasFile);
+            if (hasData) toSend.push(lang);
+
+            const tabBtn = document.querySelector(`#lang-tabs button[data-lang="${lang}"]`);
+            const isActive = (document.getElementById('panel_' + lang).style.display === 'block');
+            if (hasData) {
+                tabBtn.className = isActive ? 'w-[calc(100%+50%)] px-3 py-1 rounded-md bg-green-500 text-white' : 'w-full hover:w-[calc(100%+50%)] transition-all px-3 py-1 rounded-md bg-green-500/20 text-white';
+            } else {
+                tabBtn.className = isActive ? 'w-[calc(100%+50%)] px-3 py-1 rounded-md bg-blue-500 text-white' : 'w-full hover:w-[calc(100%+50%)] transition-all px-3 py-1 rounded-md bg-gray-100/10 text-white';
+            }
+        });
+
+        if (toSend.length) {
+            btn.querySelector('b').innerText = 'Send All (' + toSend.join(', ') + ')';
+        } else {
+            btn.querySelector('b').innerText = 'Send All';
+        }
+    }
+</script>
+
+{{template "footer.tmpl"}}
