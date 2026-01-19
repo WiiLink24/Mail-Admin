@@ -12,8 +12,6 @@ COPY go.sum .
 
 # Copy necessary parts of the Mail-Go source into builder's source
 COPY *.go ./
-COPY assets assets
-COPY templates templates
 COPY middleware middleware
 
 # Build to name "app".
@@ -24,7 +22,8 @@ FROM alpine:latest
 WORKDIR /app
 
 COPY --from=builder /app/app .
-COPY --from=builder /app/templates templates
+COPY templates templates
+COPY assets assets
 
 EXPOSE 2001
 # Wait until there's an actual MySQL connection we can use to start.
