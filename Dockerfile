@@ -4,7 +4,7 @@ FROM golang:1.24.11-alpine AS builder
 # openssl is already built-in.
 RUN apk add -U --no-cache git
 
-WORKDIR /opt/wiilink/cfh
+WORKDIR /app
 
 # Cache pulled dependencies if not updated.
 COPY go.mod .
@@ -18,6 +18,12 @@ COPY middleware middleware
 
 # Build to name "app".
 RUN go build -o app .
+
+FROM alpine:latest
+
+WORKDIR /app
+
+COPY --from=builder /app/app .
 
 EXPOSE 2001
 # Wait until there's an actual MySQL connection we can use to start.
