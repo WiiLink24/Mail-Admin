@@ -13,6 +13,7 @@ COPY go.sum .
 # Copy necessary parts of the Mail-Go source into builder's source
 COPY *.go ./
 COPY middleware middleware
+COPY assets assets
 
 # Build to name "app".
 RUN go build -o app .
