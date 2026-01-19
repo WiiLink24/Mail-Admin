@@ -24,6 +24,7 @@ FROM alpine:latest
 WORKDIR /app
 
 COPY --from=builder /app/app .
+COPY --from=builder /app/templates templates
 
 EXPOSE 2001
 # Wait until there's an actual MySQL connection we can use to start.
