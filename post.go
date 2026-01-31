@@ -29,20 +29,23 @@ func SendMessage(c *gin.Context, redirect bool) {
 	language := c.PostForm("language")
 
 	// Word-wrap message
-	messageSplit := strings.Fields(message)
+	originalLines := strings.Split(message, "\n")
 	var messageLines []string
 	currentLine := ""
-	for _, word := range messageSplit {
-		if len(currentLine)+len(word) >= 35 {
-			messageLines = append(messageLines, strings.TrimSpace(currentLine))
-			currentLine = ""
+	for _, line := range originalLines {
+		messageSplit := strings.Fields(line)
+		for _, word := range messageSplit {
+			if len(currentLine)+len(word) >= 35 {
+				messageLines = append(messageLines, strings.TrimSpace(currentLine))
+				currentLine = ""
+			}
+			currentLine += word + " "
 		}
-		currentLine += word + " "
+
+		messageLines = append(messageLines, strings.TrimSpace(currentLine))
+		currentLine = ""
 	}
 
-	if currentLine != "" {
-		messageLines = append(messageLines, strings.TrimSpace(currentLine))
-	}
 	message = strings.Join(messageLines, "\n")
 
 	message = nwc24.UTF16ToString(utf16.Encode([]rune(message)))
