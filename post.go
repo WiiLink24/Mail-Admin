@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/mail"
 	"os"
+	"strings"
 	"unicode/utf16"
 
 	"github.com/wii-tools/arclib"
@@ -26,6 +27,23 @@ func SendMessage(c *gin.Context, redirect bool) {
 	attachment, _ := c.FormFile("attachment")
 	mii, _ := c.FormFile("mii")
 	language := c.PostForm("language")
+
+	// Word-wrap message
+	messageSplit := strings.Fields(message)
+	var messageLines []string
+	currentLine := ""
+	for _, word := range messageSplit {
+		if len(currentLine)+len(word) >= 35 {
+			messageLines = append(messageLines, strings.TrimSpace(currentLine))
+			currentLine = ""
+		}
+		currentLine += word + " "
+	}
+
+	if currentLine != "" {
+		messageLines = append(messageLines, strings.TrimSpace(currentLine))
+	}
+	message = strings.Join(messageLines, "\n")
 
 	message = nwc24.UTF16ToString(utf16.Encode([]rune(message)))
 
