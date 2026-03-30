@@ -1,8 +1,6 @@
 module github/WiiLink24/Mail-Webpanel
 
-go 1.24.0
-
-toolchain go1.24.3
+go 1.25.0
 
 require (
 	github.com/WiiLink24/nwc24 v0.0.0-20251223184323-cc2586e6b86d
@@ -13,7 +11,7 @@ require (
 	github.com/wii-tools/arclib v1.1.0
 	github.com/wii-tools/libtpl v0.0.0-20240108143603-e66a8e51037d
 	github.com/wii-tools/lzx v0.0.0-20231115152519-4c1183c96cc6
-	golang.org/x/image v0.35.0
+	golang.org/x/image v0.38.0
 	golang.org/x/oauth2 v0.34.0
 )
 
@@ -46,6 +44,6 @@ require (
 	golang.org/x/crypto v0.47.0 // indirect
 	golang.org/x/net v0.49.0 // indirect
 	golang.org/x/sys v0.40.0 // indirect
-	golang.org/x/text v0.33.0 // indirect
+	golang.org/x/text v0.35.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 )
