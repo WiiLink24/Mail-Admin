@@ -3,12 +3,13 @@ package main
 import (
 	_ "embed"
 	"fmt"
+	"image"
+	"io"
+
 	"github.com/wii-tools/arclib"
 	tpl "github.com/wii-tools/libtpl"
 	"github.com/wii-tools/lzx/lz10"
 	"golang.org/x/image/draw"
-	"image"
-	"io"
 	// Importing as a side effect allows for the image library to check for these formats
 	_ "image/gif"
 	_ "image/jpeg"
@@ -20,7 +21,7 @@ import (
 )
 
 const (
-	MaxImageDimension = 8192
+	MaxImageDimension = 512
 
 	// MaxMailSize is the largest possible size mail can be, as per KD.
 	MaxMailSize = 1578040
